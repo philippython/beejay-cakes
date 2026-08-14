@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { MapPin, Phone, Mail } from "lucide-react";
+import { Phone } from "lucide-react";
+import { Logo } from "@/components/ui/Logo";
 
 function InstagramGlyph(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -10,10 +11,10 @@ function InstagramGlyph(props: React.SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
-function FacebookGlyph(props: React.SVGProps<SVGSVGElement>) {
+function TikTokGlyph(props: React.SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} {...props}>
-      <path d="M14 9h3V6h-3c-1.7 0-3 1.3-3 3v2H9v3h2v6h3v-6h2.5l.5-3H14V9.5c0-.3.2-.5.5-.5H14V9z" />
+    <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" {...props}>
+      <path d="M16.5 3c.4 2.1 1.8 3.6 4 3.9v2.9c-1.4 0-2.8-.4-4-1.2v6.6c0 3.3-2.7 5.8-5.9 5.6-2.9-.2-5.2-2.6-5.3-5.5-.1-3.2 2.5-5.9 5.7-5.9.3 0 .6 0 .9.1v3.1c-.3-.1-.6-.2-.9-.2-1.4 0-2.6 1.2-2.5 2.7.1 1.3 1.1 2.3 2.4 2.4 1.5.1 2.8-1.1 2.8-2.6V3h2.8z" />
     </svg>
   );
 }
@@ -25,6 +26,12 @@ function WhatsappGlyph(props: React.SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+const SOCIALS = [
+  { Icon: InstagramGlyph, href: "https://instagram.com/beejay_cakes", label: "Instagram @beejay_cakes" },
+  { Icon: TikTokGlyph, href: "https://tiktok.com/@beejaycakes_", label: "TikTok @beejaycakes_" },
+  { Icon: WhatsappGlyph, href: "https://wa.me/447495225986", label: "WhatsApp" },
+];
 
 const COLUMNS = [
   {
@@ -43,7 +50,6 @@ const COLUMNS = [
       { label: "Our Story", href: "/about" },
       { label: "Celebration Packages", href: "/celebrations" },
       { label: "Reviews", href: "/reviews" },
-      { label: "Careers", href: "/careers" },
     ],
   },
   {
@@ -63,21 +69,24 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-5 sm:px-8">
         <div className="grid grid-cols-2 gap-10 sm:grid-cols-4">
           <div className="col-span-2 sm:col-span-1">
-            <Link href="/" className="flex items-center gap-2.5">
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-cocoa font-display text-[16px] font-semibold text-cream">
-                B
-              </span>
-              <span className="font-display text-[19px] font-medium text-cocoa">Beejay Cakes</span>
+            <Link href="/">
+              <Logo size="md" />
             </Link>
-            <p className="mt-3 max-w-[220px] text-[13px] leading-relaxed text-cocoa-soft">
-              Handcrafted cakes, pastries and celebration treats — baked fresh and delivered
-              across London.
+            <p className="mt-3 font-display text-[13px] italic text-honey-deep">
+              … taste the difference …
+            </p>
+            <p className="mt-2 max-w-[220px] text-[13px] leading-relaxed text-cocoa-soft">
+              Handcrafted cakes, pastries and celebration treats — baked fresh in London,
+              delivered UK-wide.
             </p>
             <div className="mt-5 flex items-center gap-3">
-              {[InstagramGlyph, FacebookGlyph, WhatsappGlyph].map((Icon, i) => (
+              {SOCIALS.map(({ Icon, href, label }) => (
                 <a
-                  key={i}
-                  href="#"
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={label}
                   className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-cocoa shadow-[var(--shadow-soft)] transition-colors hover:text-honey-deep"
                 >
                   <Icon className="h-4 w-4" strokeWidth={1.8} />
@@ -109,15 +118,25 @@ export function Footer() {
 
         <div className="mt-12 flex flex-col gap-4 border-t border-line/70 py-6 text-[13px] text-cocoa-soft sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-            <span className="flex items-center gap-1.5">
-              <MapPin className="h-3.5 w-3.5" /> London, UK
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Phone className="h-3.5 w-3.5" /> +44 20 0000 0000
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Mail className="h-3.5 w-3.5" /> hello@beejaycakes.com
-            </span>
+            <a href="tel:07495225986" className="flex items-center gap-1.5 hover:text-cocoa">
+              <Phone className="h-3.5 w-3.5" /> 07495 225986
+            </a>
+            <a
+              href="https://instagram.com/beejay_cakes"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-cocoa"
+            >
+              @beejay_cakes
+            </a>
+            <a
+              href="https://tiktok.com/@beejaycakes_"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-cocoa"
+            >
+              @beejaycakes_
+            </a>
           </div>
           <p>© {new Date().getFullYear()} Beejay Cakes. All rights reserved.</p>
         </div>

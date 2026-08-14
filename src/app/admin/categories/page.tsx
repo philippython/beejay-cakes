@@ -1,14 +1,26 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Pencil, Trash2, GripVertical } from "lucide-react";
+import { Plus, Pencil, Trash2, GripVertical, Tag } from "lucide-react";
 import { categories as seedCategories } from "@/lib/mock-data";
 import { Button } from "@/components/ui/Button";
+import { Modal } from "@/components/ui/Modal";
 import { ProductMedia } from "@/components/ui/ProductMedia";
+
+function slugify(name: string) {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
 
 export default function AdminCategoriesPage() {
   const [items, setItems] = useState(seedCategories);
   const [dragId, setDragId] = useState<string | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState<(typeof seedCategories)[number] | null>(null);
+  const [name, setName] = useState("");
 
   function handleDrop(targetId: string) {
     if (!dragId || dragId === targetId) return;
@@ -27,6 +39,33 @@ export default function AdminCategoriesPage() {
     setItems((prev) => prev.filter((c) => c.id !== id));
   }
 
+  function openAdd() {
+    setEditing(null);
+    setName("");
+    setModalOpen(true);
+  }
+
+  function openEdit(cat: (typeof seedCategories)[number]) {
+    setEditing(cat);
+    setName(cat.name);
+    setModalOpen(true);
+  }
+
+  function save(e: React.FormEvent) {
+    e.preventDefault();
+    if (!name.trim()) return;
+
+    if (editing) {
+      setItems((prev) => prev.map((c) => (c.id === editing.id ? { ...c, name, slug: slugify(name) } : c)));
+    } else {
+      setItems((prev) => [
+        ...prev,
+        { id: crypto.randomUUID(), name, slug: slugify(name), image: "treat-boxes", count: 0 },
+      ]);
+    }
+    setModalOpen(false);
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between">
@@ -34,7 +73,7 @@ export default function AdminCategoriesPage() {
           <h1 className="font-display text-[26px] font-medium text-cocoa">Categories</h1>
           <p className="mt-1 text-[13.5px] text-cocoa-soft">Drag to reorder how they appear on the storefront.</p>
         </div>
-        <Button className="gap-1.5">
+        <Button className="gap-1.5" onClick={openAdd}>
           <Plus className="h-4 w-4" /> Add category
         </Button>
       </div>
@@ -57,7 +96,10 @@ export default function AdminCategoriesPage() {
               <p className="text-[13.5px] font-semibold text-cocoa">{c.name}</p>
               <p className="text-[11.5px] text-cocoa-soft">{c.count} products</p>
             </div>
-            <button className="flex h-8 w-8 items-center justify-center rounded-full text-cocoa-soft hover:bg-cocoa/[0.05]">
+            <button
+              onClick={() => openEdit(c)}
+              className="flex h-8 w-8 items-center justify-center rounded-full text-cocoa-soft hover:bg-cocoa/[0.05]"
+            >
               <Pencil className="h-3.5 w-3.5" />
             </button>
             <button
@@ -69,6 +111,34 @@ export default function AdminCategoriesPage() {
           </div>
         ))}
       </div>
+
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? "Edit category" : "Add category"}>
+        <form onSubmit={save} className="space-y-4">
+          <div className="flex h-16 items-center gap-3 rounded-2xl bg-cream/60 px-4">
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-peach-tint">
+              <Tag className="h-4 w-4 text-honey-deep" />
+            </span>
+            <p className="text-[12.5px] text-cocoa-soft">
+              New categories appear on the storefront immediately and can be assigned to
+              products from the product form.
+            </p>
+          </div>
+          <div>
+            <label className="text-[12px] font-semibold text-cocoa-soft">Category name</label>
+            <input
+              autoFocus
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. Cookie Boxes"
+              className="mt-1 w-full rounded-xl border border-cocoa/12 px-3.5 py-2.5 text-[13.5px] focus:border-honey focus:outline-none"
+            />
+          </div>
+          <Button type="submit" variant="primary" size="lg" className="w-full">
+            {editing ? "Save changes" : "Add category"}
+          </Button>
+        </form>
+      </Modal>
     </div>
   );
 }

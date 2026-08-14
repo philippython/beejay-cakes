@@ -1,6 +1,7 @@
 # Beejay Cakes
 
-A mobile-first, premium cake & celebration-treats ordering platform for Lagos —
+A mobile-first, premium cake & celebration-treats ordering platform, baked in
+London and delivered UK-wide —
 Next.js 16 (App Router) + TypeScript + Tailwind CSS v4, built to run on
 **Supabase** (Postgres + Auth + Storage) instead of a custom backend, with
 **Stripe** for payments.
@@ -221,9 +222,19 @@ external stock photography. To go live:
 
 ## Design system
 
-- **Palette**: buttery cream background, dusty rose + glazed honey accents,
-  antique gold for premium badges, deep cocoa for headings — tuned warmer
-  and more saturated than typical "AI cream + terracotta" defaults.
+- **Palette**: pulled directly from the brand logo (`public/brand/logo-full.png`)
+  — deep violet (`#5B3097`-family, token `cocoa`) and vivid magenta-pink
+  (`#EF239C`, token `rose`/`honey`), antique gold for premium badges, on a
+  soft lavender-tinted white. Token *names* (cocoa/honey/rose/gold/etc.)
+  stayed the same as the original warm-cream theme on purpose — every
+  component already references them, so re-theming was a one-file change
+  in `globals.css` rather than touching every component.
+- **Logo**: the real logo lives at `public/brand/` (full lockup, icon-only,
+  and pre-sized favicons). `src/components/ui/Logo.tsx` renders the icon
+  next to a "Beejay Cakes" wordmark set in the site's own display serif
+  (Fraunces), so the real logo mark always appears alongside consistent,
+  on-brand typography — used in the header, mobile bar, footer, and admin
+  sidebar.
 - **Type**: Fraunces (soft optical axis) for display headings, Plus Jakarta
   Sans for UI text — both self-hosted via `@fontsource-variable` (no
   external font CDN, no render-blocking third-party requests).

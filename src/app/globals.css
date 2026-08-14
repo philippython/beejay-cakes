@@ -5,35 +5,37 @@
 
 /* ---------------------------------------------------------
    Beejay Cakes — design tokens
-   Warm bakery palette: buttery cream, dusty rose, glazed
-   honey, antique gold, deep cocoa. Tuned warmer / more
-   saturated than the generic "AI cream + terracotta" combo
-   so it reads appetizing rather than corporate-neutral.
+   Palette pulled directly from the brand logo: deep violet
+   (#5B3097) + vivid magenta-pink (#EF239C), on a soft
+   lavender-tinted white. Token NAMES stay the same as before
+   (cocoa/honey/rose/gold/etc.) so every component that
+   already references them automatically re-themes — only the
+   hex values change.
 --------------------------------------------------------- */
 :root {
-  --color-cream: #fbf5ec;
-  --color-cream-deep: #f6ead9;
+  --color-cream: #faf7fc;
+  --color-cream-deep: #f3ecf7;
   --color-surface: #ffffff;
-  --color-peach-tint: #f8e6d4;
+  --color-peach-tint: #fbeaf5;
 
-  --color-cocoa: #3b2415;
-  --color-cocoa-soft: #7d6552;
-  --color-cocoa-faint: #a8927e;
+  --color-cocoa: #2e1a47;
+  --color-cocoa-soft: #6b5c82;
+  --color-cocoa-faint: #9a8cae;
 
-  --color-rose: #e2809c;
-  --color-rose-deep: #c85f7e;
-  --color-peach: #f2b487;
-  --color-honey: #e2822f;
-  --color-honey-deep: #c76a20;
+  --color-rose: #ef239c;
+  --color-rose-deep: #c71880;
+  --color-peach: #f7a8d9;
+  --color-honey: #8b3fd1;
+  --color-honey-deep: #6b2ea8;
   --color-gold: #b0813a;
   --color-gold-soft: #ecd9b4;
 
   --color-success: #3e9b57;
   --color-success-tint: #e6f4e9;
-  --color-line: #efe1cd;
+  --color-line: #ede3f2;
 
-  --shadow-soft: 0 2px 8px rgba(59, 36, 21, 0.06), 0 12px 28px -12px rgba(59, 36, 21, 0.14);
-  --shadow-lift: 0 8px 16px rgba(59, 36, 21, 0.08), 0 24px 48px -16px rgba(59, 36, 21, 0.22);
+  --shadow-soft: 0 2px 8px rgba(46, 26, 71, 0.07), 0 12px 28px -12px rgba(46, 26, 71, 0.16);
+  --shadow-lift: 0 8px 16px rgba(46, 26, 71, 0.1), 0 24px 48px -16px rgba(46, 26, 71, 0.26);
 }
 
 @theme inline {

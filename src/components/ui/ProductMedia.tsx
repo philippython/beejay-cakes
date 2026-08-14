@@ -16,12 +16,12 @@ type Tone = {
 };
 
 const TONES: Record<string, Tone> = {
-  birthday: { bg: "#F7E4D6", fg: "#C76A20", icon: Cake },
-  wedding: { bg: "#F3E7E9", fg: "#B0813A", icon: Sparkles },
-  cupcakes: { bg: "#FBE7ED", fg: "#C85F7E", icon: CakeSlice },
-  pastries: { bg: "#F6ECD9", fg: "#8A5A2B", icon: Croissant },
-  "small-chops": { bg: "#F7E1D3", fg: "#A6461B", icon: UtensilsCrossed },
-  "treat-boxes": { bg: "#F1E3F0", fg: "#9C5B8C", icon: Gift },
+  birthday: { bg: "#FBEAF5", fg: "#C71880", icon: Cake },
+  wedding: { bg: "#F1EAFB", fg: "#B0813A", icon: Sparkles },
+  cupcakes: { bg: "#FCE8F3", fg: "#EF239C", icon: CakeSlice },
+  pastries: { bg: "#EFE7FA", fg: "#6B2EA8", icon: Croissant },
+  "small-chops": { bg: "#F3EAFA", fg: "#8B3FD1", icon: UtensilsCrossed },
+  "treat-boxes": { bg: "#F6E9F6", fg: "#9C2E7A", icon: Gift },
 };
 
 function toneFor(tag: string): Tone {

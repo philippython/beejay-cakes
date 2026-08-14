@@ -12,6 +12,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Logo } from "@/components/ui/Logo";
 
 const NAV = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -27,11 +28,8 @@ export function AdminSidebar() {
 
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-line/70 bg-surface md:flex">
-      <Link href="/" className="flex items-center gap-2.5 px-6 py-6">
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-cocoa font-display text-[14px] font-semibold text-cream">
-          B
-        </span>
-        <span className="font-display text-[16px] font-medium text-cocoa">Beejay Admin</span>
+      <Link href="/" className="px-6 py-6">
+        <Logo size="sm" />
       </Link>
 
       <nav className="flex-1 space-y-1 px-3">

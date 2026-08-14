@@ -1,11 +1,17 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Star, Sparkles } from "lucide-react";
+import { Sparkles, ChefHat, ShieldCheck, Truck } from "lucide-react";
 import { SearchBar } from "./SearchBar";
 import { ProductMedia } from "../ui/ProductMedia";
 
 const OCCASIONS = ["Birthdays", "Weddings", "Celebrations", "Anniversaries", "Just Because"];
+
+const FEATURES = [
+  { icon: ChefHat, label: "Baked fresh to order" },
+  { icon: Truck, label: "Delivered UK-wide" },
+  { icon: ShieldCheck, label: "Secure checkout" },
+];
 
 export function Hero() {
   return (
@@ -30,7 +36,7 @@ export function Hero() {
 
           <p className="mt-4 max-w-md text-[15.5px] leading-relaxed text-cocoa-soft">
             From birthday showstoppers to small chops platters — order in minutes and
-            track it to your door.
+            get it delivered UK-wide.
           </p>
 
           <div className="mt-6">
@@ -48,25 +54,15 @@ export function Hero() {
             ))}
           </div>
 
-          <div className="mt-8 flex items-center gap-6">
-            <div>
-              <p className="font-display text-[22px] font-medium text-cocoa">4.9</p>
-              <div className="mt-0.5 flex items-center gap-0.5">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} className="h-3 w-3 fill-gold text-gold" strokeWidth={0} />
-                ))}
+          <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
+            {FEATURES.map((f) => (
+              <div key={f.label} className="flex items-center gap-2">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/70">
+                  <f.icon className="h-4 w-4 text-honey-deep" strokeWidth={1.8} />
+                </span>
+                <p className="text-[13px] font-medium text-cocoa">{f.label}</p>
               </div>
-            </div>
-            <div className="h-9 w-px bg-cocoa/10" />
-            <div>
-              <p className="font-display text-[22px] font-medium text-cocoa">12k+</p>
-              <p className="text-[12px] text-cocoa-soft">Orders delivered</p>
-            </div>
-            <div className="h-9 w-px bg-cocoa/10" />
-            <div>
-              <p className="font-display text-[22px] font-medium text-cocoa">45 min</p>
-              <p className="text-[12px] text-cocoa-soft">Avg. delivery</p>
-            </div>
+            ))}
           </div>
         </motion.div>
 
@@ -93,12 +89,12 @@ export function Hero() {
             transition={{ delay: 0.5, duration: 0.4 }}
             className="absolute right-[6%] top-[2%] flex items-center gap-2 rounded-2xl bg-white px-3.5 py-2.5 shadow-[var(--shadow-lift)]"
           >
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-success-tint">
-              <Star className="h-4 w-4 fill-success text-success" strokeWidth={0} />
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-peach-tint">
+              <Sparkles className="h-4 w-4 text-rose" strokeWidth={1.8} />
             </span>
             <div className="leading-tight">
-              <p className="text-[13px] font-bold text-cocoa">4.9 rating</p>
-              <p className="text-[11px] text-cocoa-soft">from 2,300 reviews</p>
+              <p className="font-display text-[13px] italic text-cocoa">taste the</p>
+              <p className="font-display text-[13px] italic text-cocoa">difference</p>
             </div>
           </motion.div>
         </motion.div>

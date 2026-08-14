@@ -18,8 +18,8 @@ const POINTS = [
   },
   {
     icon: Truck,
-    title: "London-wide delivery",
-    text: "Careful, temperature-safe delivery across Central London and beyond.",
+    title: "UK-wide delivery",
+    text: "Careful, temperature-safe delivery — baked in London, delivered nationwide.",
   },
 ];
 

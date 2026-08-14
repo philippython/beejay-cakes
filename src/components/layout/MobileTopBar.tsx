@@ -1,23 +1,22 @@
 import Link from "next/link";
-import { MapPin, Heart } from "lucide-react";
+import { Truck, Heart } from "lucide-react";
+import { Logo } from "@/components/ui/Logo";
 
 export function MobileTopBar() {
   return (
     <div className="sticky top-0 z-40 flex items-center justify-between gap-3 border-b border-line/70 bg-cream/90 px-5 pb-3 pt-4 backdrop-blur-md md:hidden">
-      <div className="flex items-center gap-2">
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-cocoa font-display text-[14px] font-semibold text-cream">
-          B
-        </span>
+      <Link href="/" className="flex items-center gap-2.5">
+        <Logo size="sm" showWordmark={false} />
         <div className="leading-tight">
           <p className="text-[10px] font-semibold uppercase tracking-wide text-cocoa-faint">
-            Delivering to
+            Beejay Cakes
           </p>
           <div className="flex items-center gap-1">
-            <MapPin className="h-3 w-3 text-honey-deep" />
-            <p className="text-[13px] font-semibold text-cocoa">Central London</p>
+            <Truck className="h-3 w-3 text-honey-deep" />
+            <p className="text-[12.5px] font-semibold text-cocoa">Delivering UK-wide</p>
           </div>
         </div>
-      </div>
+      </Link>
       <Link
         href="/wishlist"
         aria-label="Wishlist"
