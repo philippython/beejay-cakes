@@ -63,135 +63,44 @@ dashboard's chrome (sidebar, top bar) completely separate from the
 storefront's chrome (header, bottom nav, footer) — no `display: none`
 hacks.
 
-## Moving from mock data to Supabase
+## Backend setup — Supabase
 
-Run this in the Supabase SQL editor to create the core schema:
+The storefront and admin panel are **fully wired to Supabase** — this isn't
+a mock-data prototype waiting to be connected, it's real queries that just
+need a database behind them:
 
-```sql
-create table categories (
-  id uuid primary key default gen_random_uuid(),
-  name text not null,
-  slug text unique not null,
-  sort_order int not null default 0
-);
+1. Create a project at [supabase.com](https://supabase.com).
+2. SQL Editor → paste in **`supabase/schema.sql`**, run it. Creates every
+   table, plus a trigger that auto-creates a `profiles` row on signup and
+   seeds the six starter categories.
+3. SQL Editor → paste in **`supabase/policies.sql`**, run it. Turns on Row
+   Level Security everywhere and adds the policies (customers see their own
+   orders/addresses/wishlist only; anyone can read products/categories;
+   only admins can write).
+4. Project Settings → API → copy the Project URL, `anon` key, and
+   `service_role` key into `.env.local` (see `.env.example`).
+5. Sign up on the site once (`/register`), then in the SQL Editor run:
+   ```sql
+   update profiles set role = 'admin'
+     where id = (select id from auth.users where email = 'you@example.com');
+   ```
+   That account can now reach `/admin` — everyone else is redirected (see
+   `src/proxy.ts`, which gates the whole `/admin` route group).
 
-create table products (
-  id uuid primary key default gen_random_uuid(),
-  slug text unique not null,
-  name text not null,
-  description text not null,
-  category_id uuid references categories(id),
-  price numeric not null,
-  compare_at_price numeric,
-  prep_time text,
-  is_featured boolean default false,
-  is_active boolean default true,
-  created_at timestamptz default now()
-);
+That's it — no code changes required. `src/lib/data/products.ts` is the
+data-access layer every storefront page reads from, and
+`src/lib/data/admin-products.ts` / `admin-categories.ts` are what the admin
+panel writes through. Ratings/review counts are genuinely computed from the
+`reviews` table, so a product with zero reviews correctly shows zero —
+nothing is ever fabricated.
 
-create table product_images (
-  id uuid primary key default gen_random_uuid(),
-  product_id uuid references products(id) on delete cascade,
-  url text not null,
-  sort_order int not null default 0,
-  is_cover boolean default false
-);
-
-create table product_sizes (
-  id uuid primary key default gen_random_uuid(),
-  product_id uuid references products(id) on delete cascade,
-  label text not null,
-  price_modifier numeric not null default 0,
-  stock int not null default 0
-);
-
-create table product_flavours (
-  id uuid primary key default gen_random_uuid(),
-  product_id uuid references products(id) on delete cascade,
-  name text not null
-);
-
-create table orders (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid references auth.users(id),
-  status text not null default 'pending'
-    check (status in ('pending','confirmed','baking','ready','out_for_delivery','delivered','cancelled')),
-  subtotal numeric not null,
-  delivery_fee numeric not null default 0,
-  total numeric not null,
-  delivery_address text not null,
-  phone text not null,
-  delivery_instructions text,
-  stripe_session_id text,
-  payment_confirmed boolean default false,
-  created_at timestamptz default now()
-);
-
-create table order_items (
-  id uuid primary key default gen_random_uuid(),
-  order_id uuid references orders(id) on delete cascade,
-  product_id uuid references products(id),
-  name text not null,
-  size text,
-  flavour text,
-  add_ons text[],
-  unit_price numeric not null,
-  quantity int not null
-);
-
-create table reviews (
-  id uuid primary key default gen_random_uuid(),
-  product_id uuid references products(id) on delete cascade,
-  user_id uuid references auth.users(id),
-  order_id uuid references orders(id),
-  rating int not null check (rating between 1 and 5),
-  comment text not null,
-  photo_url text,
-  is_approved boolean default false,
-  created_at timestamptz default now()
-);
-
-create table addresses (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid references auth.users(id) on delete cascade,
-  label text not null,
-  detail text not null,
-  is_default boolean default false
-);
-
-create table wishlist_items (
-  user_id uuid references auth.users(id) on delete cascade,
-  product_id uuid references products(id) on delete cascade,
-  primary key (user_id, product_id)
-);
-```
-
-Then enable Row Level Security on every table and add policies, e.g.:
-
-```sql
-alter table orders enable row level security;
-create policy "Users see their own orders"
-  on orders for select using (auth.uid() = user_id);
-create policy "Users create their own orders"
-  on orders for insert with check (auth.uid() = user_id);
-```
-
-For an admin role, the simplest approach is a `profiles` table with a
-`role` column (`'customer' | 'admin'`) and policies like
-`using (exists (select 1 from profiles where id = auth.uid() and role = 'admin'))`
-on the admin-only tables/actions. Gate the `/admin` route group with a
-Server Component check against that role before rendering.
-
-Once the schema is live, regenerate types and replace the placeholder file:
+`src/lib/database.types.ts` is hand-written to match `supabase/schema.sql`.
+Once you're on Supabase and want the types to stay perfectly in sync as you
+evolve the schema, regenerate them instead:
 
 ```bash
 npx supabase gen types typescript --project-id <your-project-ref> > src/lib/database.types.ts
 ```
-
-Then swap the mock-data reads in the `(storefront)` pages for real
-`supabase.from("products").select()` calls — React Server Components are
-already `async` where needed (e.g. `product/[slug]/page.tsx`), so this is
-mostly a drop-in change.
 
 ## Stripe
 
@@ -244,11 +153,20 @@ external stock photography. To go live:
 
 ## Next steps
 
-- [ ] Gate `/admin/*` behind a Supabase `role = 'admin'` check
-- [ ] Replace mock data reads with live Supabase queries
-- [ ] Add the Stripe webhook route + order status sync
-- [ ] Wire Cloudinary uploads in the admin product form
-- [ ] Add customer notifications (order confirmation, status changes) —
-      Supabase Edge Functions + email/SMS provider, or a simple
-      `notifications` table + realtime subscription for in-app toasts
+Done:
+- [x] `/admin/*` gated behind a Supabase `role = 'admin'` check (`src/proxy.ts`)
+- [x] Storefront + admin panel wired to live Supabase queries
+- [x] Stripe webhook route creates the order once payment is confirmed
+
+Still open:
+- [ ] Wire the admin Orders/Customers/Reviews pages to real Supabase data
+      (currently still local-state demos — Products/Categories are the
+      ones fully wired to the database; see `src/lib/mock-data.ts`)
+- [ ] Wire Cloudinary uploads in the admin product form (currently a
+      non-functional file input)
+- [ ] Order notifications (confirmation, status changes) — Supabase Edge
+      Functions + an email/SMS provider, or a `notifications` table +
+      realtime subscription for in-app toasts
 - [ ] Real product photography
+- [ ] Postcode/zone-based delivery pricing (currently a flat fee)
+- [ ] Privacy policy, terms, and a cookie consent banner

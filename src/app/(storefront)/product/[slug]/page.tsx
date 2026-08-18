@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
-import { ChevronRight, Heart } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { products } from "@/lib/mock-data";
+import { createClient } from "@/lib/supabase/server";
+import { getProductBySlug, getProductReviews, getProductsByCategorySlug } from "@/lib/data/products";
 import { formatPrice } from "@/lib/utils";
 import { Gallery } from "@/components/product/Gallery";
 import { ProductOptions } from "@/components/product/ProductOptions";
@@ -10,9 +11,7 @@ import { SimilarProducts } from "@/components/product/SimilarProducts";
 import { RatingStars } from "@/components/ui/RatingStars";
 import { Badge } from "@/components/ui/Badge";
 
-export function generateStaticParams() {
-  return products.map((p) => ({ slug: p.slug }));
-}
+export const dynamic = "force-dynamic";
 
 export default async function ProductPage({
   params,
@@ -20,10 +19,19 @@ export default async function ProductPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const product = products.find((p) => p.slug === slug);
+  const supabase = await createClient();
+
+  const product = await getProductBySlug(supabase, slug);
   if (!product) notFound();
 
-  const similar = products.filter((p) => p.category === product.category && p.id !== product.id);
+  const categorySlug = product.category.toLowerCase().replace(/\s+/g, "-");
+  const [reviews, categoryProducts] = await Promise.all([
+    getProductReviews(supabase, product.id),
+    getProductsByCategorySlug(supabase, categorySlug),
+  ]);
+
+  const similar = categoryProducts.filter((p) => p.id !== product.id);
+  const rating = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
 
   return (
     <div className="pb-28 sm:pb-16">
@@ -31,7 +39,7 @@ export default async function ProductPage({
       <div className="mx-auto hidden max-w-6xl items-center gap-1.5 px-8 pt-6 text-[12.5px] text-cocoa-soft sm:flex">
         <Link href="/" className="hover:text-cocoa">Home</Link>
         <ChevronRight className="h-3 w-3" />
-        <Link href={`/category/${product.category.toLowerCase().replace(/\s+/g, "-")}`} className="hover:text-cocoa">
+        <Link href={`/category/${categorySlug}`} className="hover:text-cocoa">
           {product.category}
         </Link>
         <ChevronRight className="h-3 w-3" />
@@ -46,25 +54,19 @@ export default async function ProductPage({
 
         {/* Details */}
         <div className="mt-6 md:mt-0">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-[12px] font-semibold uppercase tracking-wide text-cocoa-faint">
-                {product.category}
-              </p>
-              <h1 className="mt-1 font-display text-[26px] font-medium leading-tight text-cocoa sm:text-[30px]">
-                {product.name}
-              </h1>
-            </div>
-            <button
-              aria-label="Save to wishlist"
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white shadow-[var(--shadow-soft)]"
-            >
-              <Heart className="h-[19px] w-[19px] text-cocoa" strokeWidth={1.8} />
-            </button>
-          </div>
+          <p className="text-[12px] font-semibold uppercase tracking-wide text-cocoa-faint">
+            {product.category}
+          </p>
+          <h1 className="mt-1 font-display text-[26px] font-medium leading-tight text-cocoa sm:text-[30px]">
+            {product.name}
+          </h1>
 
           <div className="mt-2 flex items-center gap-2">
-            <RatingStars rating={product.rating} showValue reviewCount={product.reviewCount} />
+            {reviews.length > 0 ? (
+              <RatingStars rating={rating} showValue reviewCount={reviews.length} />
+            ) : (
+              <span className="text-[13px] text-cocoa-soft">No reviews yet</span>
+            )}
             {product.badge && <Badge kind={product.badge}>{product.badge}</Badge>}
           </div>
 
@@ -88,7 +90,7 @@ export default async function ProductPage({
       </div>
 
       <div className="mx-auto mt-14 max-w-6xl space-y-14 px-5 sm:px-8">
-        <Reviews rating={product.rating} reviewCount={product.reviewCount} />
+        <Reviews reviews={reviews} />
         <SimilarProducts products={similar} />
       </div>
     </div>

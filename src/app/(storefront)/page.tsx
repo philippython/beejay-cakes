@@ -4,13 +4,26 @@ import { CategoryRail } from "@/components/home/CategoryRail";
 import { ProductRail } from "@/components/home/ProductRail";
 import { WhyChooseUs } from "@/components/home/WhyChooseUs";
 import { Testimonials } from "@/components/home/Testimonials";
-import { products, bestSellers, newArrivals, featured } from "@/lib/mock-data";
+import { createClient } from "@/lib/supabase/server";
+import { getCategories, getFeaturedProducts, getProducts } from "@/lib/data/products";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const supabase = await createClient();
+  const [categories, products, featured] = await Promise.all([
+    getCategories(supabase),
+    getProducts(supabase),
+    getFeaturedProducts(supabase),
+  ]);
+
+  const bestSellers = products.filter((p) => p.badge === "Best Seller");
+  const newArrivals = products.filter((p) => p.badge === "New");
+
   return (
     <>
       <Hero />
-      <CategoryRail />
+      <CategoryRail categories={categories} />
 
       {products.length === 0 ? (
         <section className="mx-5 mt-10 flex flex-col items-center rounded-[22px] bg-surface px-6 py-14 text-center shadow-[var(--shadow-soft)] sm:mx-8 sm:mt-14">
@@ -21,13 +34,14 @@ export default function Home() {
             Our menu is being freshly prepared
           </p>
           <p className="mt-1.5 max-w-sm text-[13.5px] leading-relaxed text-cocoa-soft">
-            Cakes, pastries and treat boxes will appear here as soon as they&apos;re added.
+            Cakes, pastries and treat boxes will appear here as soon as they&apos;re added in the
+            admin panel.
           </p>
         </section>
       ) : (
         <>
           <ProductRail eyebrow="Handpicked" title="Featured cakes" href="/search?f=featured" products={featured} />
-          <ProductRail eyebrow="Crowd favourites" title="Popular treats" href="/search?f=popular" products={products.slice(2, 7)} />
+          <ProductRail eyebrow="Crowd favourites" title="Popular treats" href="/search" products={products.slice(0, 5)} />
           <ProductRail eyebrow="Top rated" title="Best sellers" href="/search?f=best-sellers" products={bestSellers} />
           <ProductRail eyebrow="Just in" title="New arrivals" href="/search?f=new" products={newArrivals} />
         </>

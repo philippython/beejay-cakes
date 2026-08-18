@@ -1,10 +1,9 @@
 import { notFound } from "next/navigation";
-import { categories, products } from "@/lib/mock-data";
+import { createClient } from "@/lib/supabase/server";
+import { getCategories, getProductsByCategorySlug } from "@/lib/data/products";
 import { ProductCard } from "@/components/ui/ProductCard";
 
-export function generateStaticParams() {
-  return categories.map((c) => ({ slug: c.slug }));
-}
+export const dynamic = "force-dynamic";
 
 export default async function CategoryPage({
   params,
@@ -12,10 +11,15 @@ export default async function CategoryPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  const supabase = await createClient();
+
+  const [categories, items] = await Promise.all([
+    getCategories(supabase),
+    getProductsByCategorySlug(supabase, slug),
+  ]);
+
   const category = categories.find((c) => c.slug === slug);
   if (!category) notFound();
-
-  const items = products.filter((p) => p.category === category.name);
 
   return (
     <div className="mx-auto max-w-6xl px-5 pb-16 pt-6 sm:px-8">

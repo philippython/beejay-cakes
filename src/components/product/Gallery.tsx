@@ -7,9 +7,10 @@ import { cn } from "@/lib/utils";
 
 export function Gallery({ images }: { images: string[] }) {
   const [index, setIndex] = useState(0);
+  const slides = images.length ? images : ["birthday"];
 
   function go(dir: 1 | -1) {
-    setIndex((i) => (i + dir + images.length) % images.length);
+    setIndex((i) => (i + dir + slides.length) % slides.length);
   }
 
   return (
@@ -31,13 +32,13 @@ export function Gallery({ images }: { images: string[] }) {
             }}
             className="absolute inset-0"
           >
-            <ProductMedia tag={images[index]} className="h-full w-full" iconClassName="h-16 w-16" />
+            <ProductMedia tag={slides[index]} className="h-full w-full" iconClassName="h-16 w-16" />
           </motion.div>
         </AnimatePresence>
 
         {/* dot indicators */}
         <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-1.5">
-          {images.map((_, i) => (
+          {slides.map((_, i) => (
             <button
               key={i}
               aria-label={`Show image ${i + 1}`}
@@ -53,7 +54,7 @@ export function Gallery({ images }: { images: string[] }) {
 
       {/* thumbnails */}
       <div className="mt-3 flex gap-2.5">
-        {images.map((img, i) => (
+        {slides.map((img, i) => (
           <button
             key={i}
             onClick={() => setIndex(i)}

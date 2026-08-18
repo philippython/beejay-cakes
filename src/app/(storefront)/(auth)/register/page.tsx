@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Mail, Lock, User, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase/client";
 
 export default function RegisterPage() {
   const [name, setName] = useState("");

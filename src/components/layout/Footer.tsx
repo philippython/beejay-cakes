@@ -49,7 +49,6 @@ const COLUMNS = [
     links: [
       { label: "Our Story", href: "/about" },
       { label: "Celebration Packages", href: "/celebrations" },
-      { label: "Reviews", href: "/reviews" },
     ],
   },
   {

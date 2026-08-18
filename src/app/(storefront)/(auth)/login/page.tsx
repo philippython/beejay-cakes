@@ -1,12 +1,15 @@
 "use client";
 
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Mail, Lock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { supabase } from "@/lib/supabase";
+import { Logo } from "@/components/ui/Logo";
+import { supabase } from "@/lib/supabase/client";
 
-export default function LoginPage() {
+function LoginForm() {
+  const params = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -19,14 +22,12 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) setError(error.message);
-    else window.location.href = "/account";
+    else window.location.href = params.get("next") ?? "/account";
   }
 
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-sm flex-col justify-center px-6 py-16">
-      <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-cocoa font-display text-[18px] font-semibold text-cream">
-        B
-      </span>
+      <Logo size="lg" showWordmark={false} className="mx-auto" />
       <h1 className="mt-5 text-center font-display text-[24px] font-medium text-cocoa">
         Welcome back
       </h1>
@@ -72,5 +73,13 @@ export default function LoginPage() {
         </Link>
       </p>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }

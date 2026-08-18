@@ -1,14 +1,21 @@
 import { Banknote, ShoppingBag, Users, AlertTriangle, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { StatCard } from "@/components/admin/StatCard";
-import { products, orders } from "@/lib/mock-data";
+import { orders } from "@/lib/mock-data";
+import { createClient } from "@/lib/supabase/server";
+import { getProducts } from "@/lib/data/products";
 import { formatPrice } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 
+export const dynamic = "force-dynamic";
+
 const revenue = orders.reduce((sum, o) => sum + o.total, 0);
 
-export default function AdminDashboard() {
+export default async function AdminDashboard() {
+  const supabase = await createClient();
+  const products = await getProducts(supabase);
+
   return (
     <div className="space-y-8">
       <div>

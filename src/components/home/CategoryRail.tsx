@@ -1,8 +1,10 @@
-import { categories } from "@/lib/mock-data";
+import { Category } from "@/lib/types";
 import { CategoryCard } from "../ui/CategoryCard";
 import { SectionHeader } from "../ui/SectionHeader";
 
-export function CategoryRail() {
+export function CategoryRail({ categories }: { categories: Category[] }) {
+  if (categories.length === 0) return null;
+
   return (
     <section className="pt-10 sm:pt-14">
       <SectionHeader eyebrow="Browse" title="Shop by category" />

@@ -1,14 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Heart } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Product } from "@/lib/types";
 import { ProductMedia } from "./ProductMedia";
 import { Badge } from "./Badge";
 import { RatingStars } from "./RatingStars";
 import { formatPrice, cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { supabase } from "@/lib/supabase/client";
+import { isProductWishlisted, toggleWishlist } from "@/lib/data/products";
 
 export function ProductCard({
   product,
@@ -19,10 +22,31 @@ export function ProductCard({
   className?: string;
   priority?: boolean;
 }) {
+  const router = useRouter();
   const [saved, setSaved] = useState(false);
   const discount = product.compareAtPrice
     ? Math.round(100 - (product.price / product.compareAtPrice) * 100)
     : null;
+
+  useEffect(() => {
+    let cancelled = false;
+    isProductWishlisted(supabase, product.id).then((v) => {
+      if (!cancelled) setSaved(v);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [product.id]);
+
+  async function handleToggleWishlist(e: React.MouseEvent) {
+    e.preventDefault();
+    const next = await toggleWishlist(supabase, product.id);
+    if (next === null) {
+      router.push("/login");
+      return;
+    }
+    setSaved(next);
+  }
 
   return (
     <motion.div
@@ -43,10 +67,7 @@ export function ProductCard({
 
           <button
             aria-label={saved ? "Remove from wishlist" : "Save to wishlist"}
-            onClick={(e) => {
-              e.preventDefault();
-              setSaved((s) => !s);
-            }}
+            onClick={handleToggleWishlist}
             className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 backdrop-blur transition-transform active:scale-90"
           >
             <Heart

@@ -10,9 +10,9 @@ import { QuantityStepper } from "./QuantityStepper";
 import { useCartStore } from "@/store/cart";
 
 const ADD_ONS = [
-  { id: "candles", label: "Number candles", price: 1500 },
-  { id: "card", label: "Personalised message card", price: 1000 },
-  { id: "topper", label: "Gold cake topper", price: 2500 },
+  { id: "candles", label: "Number candles", price: 2.5 },
+  { id: "card", label: "Personalised message card", price: 2 },
+  { id: "topper", label: "Gold cake topper", price: 6 },
 ];
 
 export function ProductOptions({ product }: { product: Product }) {

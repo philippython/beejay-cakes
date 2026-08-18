@@ -1,27 +1,35 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { MapPin, CreditCard, Banknote, Loader2 } from "lucide-react";
 import { useCartStore, cartSubtotal } from "@/store/cart";
 import { formatPrice, cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
+import { supabase } from "@/lib/supabase/client";
 
-const DELIVERY_FEE = 2500;
+const DELIVERY_FEE = 4.99;
 
 export default function CheckoutPage() {
   const items = useCartStore((s) => s.items);
-  const router = useRouter();
   const subtotal = cartSubtotal(items);
   const total = subtotal + (items.length ? DELIVERY_FEE : 0);
 
   const [payment, setPayment] = useState<"card" | "transfer">("card");
   const [loading, setLoading] = useState(false);
+  const [userId, setUserId] = useState<string | undefined>();
+  const [email, setEmail] = useState<string | undefined>();
   const [form, setForm] = useState({
     address: "",
     phone: "",
     instructions: "",
   });
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setUserId(data.user?.id);
+      setEmail(data.user?.email);
+    });
+  }, []);
 
   async function handlePay(e: React.FormEvent) {
     e.preventDefault();
@@ -31,8 +39,20 @@ export default function CheckoutPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          items: items.map((i) => ({ name: i.name, unitPrice: i.unitPrice, quantity: i.quantity })),
+          items: items.map((i) => ({
+            productId: i.productId,
+            name: i.name,
+            size: i.size,
+            flavour: i.flavour,
+            unitPrice: i.unitPrice,
+            quantity: i.quantity,
+          })),
           deliveryFee: items.length ? DELIVERY_FEE : 0,
+          deliveryAddress: form.address,
+          phone: form.phone,
+          deliveryInstructions: form.instructions,
+          userId,
+          customerEmail: email,
         }),
       });
       const data = await res.json();

@@ -9,7 +9,7 @@ import { QuantityStepper } from "@/components/product/QuantityStepper";
 import { ProductMedia } from "@/components/ui/ProductMedia";
 import { Button } from "@/components/ui/Button";
 
-const DELIVERY_FEE = 2500;
+const DELIVERY_FEE = 4.99;
 
 export default function CartPage() {
   const items = useCartStore((s) => s.items);
