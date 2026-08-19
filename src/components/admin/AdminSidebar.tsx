@@ -9,6 +9,7 @@ import {
   Tags,
   Users,
   MessageSquareText,
+  Settings,
   ArrowLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -21,6 +22,7 @@ const NAV = [
   { label: "Categories", href: "/admin/categories", icon: Tags },
   { label: "Customers", href: "/admin/customers", icon: Users },
   { label: "Reviews", href: "/admin/reviews", icon: MessageSquareText },
+  { label: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
 export function AdminSidebar() {

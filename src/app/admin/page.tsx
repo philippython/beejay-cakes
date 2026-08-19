@@ -1,20 +1,19 @@
 import { Banknote, ShoppingBag, Users, AlertTriangle, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { StatCard } from "@/components/admin/StatCard";
-import { orders } from "@/lib/mock-data";
 import { createClient } from "@/lib/supabase/server";
 import { getProducts } from "@/lib/data/products";
+import { getAllOrdersAdmin } from "@/lib/data/admin-orders";
 import { formatPrice } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 
 export const dynamic = "force-dynamic";
 
-const revenue = orders.reduce((sum, o) => sum + o.total, 0);
-
 export default async function AdminDashboard() {
   const supabase = await createClient();
-  const products = await getProducts(supabase);
+  const [products, orders] = await Promise.all([getProducts(supabase), getAllOrdersAdmin(supabase)]);
+  const revenue = orders.reduce((sum, o) => sum + o.total, 0);
 
   return (
     <div className="space-y-8">
@@ -50,10 +49,10 @@ export default async function AdminDashboard() {
         <div className="rounded-2xl bg-surface p-5 shadow-[var(--shadow-soft)]">
           <p className="text-[13px] font-bold text-cocoa">Recent orders</p>
           <div className="mt-4 space-y-3">
-            {orders.map((o) => (
+            {orders.slice(0, 8).map((o) => (
               <div key={o.id} className="flex items-center justify-between">
                 <div>
-                  <p className="text-[12.5px] font-semibold text-cocoa">{o.id}</p>
+                  <p className="text-[12.5px] font-semibold text-cocoa">#{o.id.slice(0, 8).toUpperCase()}</p>
                   <p className="text-[11px] text-cocoa-soft">{o.date}</p>
                 </div>
                 <Badge kind={o.status === "Delivered" ? "success" : "Best Seller"}>{o.status}</Badge>

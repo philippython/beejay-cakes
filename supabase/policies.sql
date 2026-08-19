@@ -64,6 +64,14 @@ create policy "Users manage own addresses" on addresses for all
 create policy "Users manage own wishlist" on wishlist_items for all
   using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
+-- Store settings (bank details etc): admins only, both ways. Nobody else
+-- has any reason to read this — it's fetched server-side (via the
+-- service-role client, which bypasses RLS anyway) when building order
+-- emails, and edited only from /admin/settings.
+alter table store_settings enable row level security;
+create policy "Admins read settings" on store_settings for select using (is_admin());
+create policy "Admins update settings" on store_settings for update using (is_admin()) with check (is_admin());
+
 -- To make yourself an admin after signing up on the site once, run:
 --   update profiles set role = 'admin' where id =
 --     (select id from auth.users where email = 'you@example.com');

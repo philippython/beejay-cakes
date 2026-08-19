@@ -60,6 +60,11 @@ function LoginForm() {
         </label>
 
         {error && <p className="text-[12.5px] font-medium text-rose-deep">{error}</p>}
+        {!error && params.get("error") === "confirmation_failed" && (
+          <p className="text-[12.5px] font-medium text-rose-deep">
+            That confirmation link didn&apos;t work — it may have expired. Try logging in, or register again.
+          </p>
+        )}
 
         <Button type="submit" variant="primary" size="lg" disabled={loading} className="w-full">
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Log in"}

@@ -20,7 +20,7 @@ const FAQS = [
   },
   {
     q: "How do I pay?",
-    a: "Checkout is handled securely by Stripe — you can pay by card. We never see or store your card details.",
+    a: "Once you place an order, we'll email you our bank details and a payment reference. Your order goes into the kitchen as soon as we've confirmed the transfer's arrived.",
   },
   {
     q: "What if something's wrong with my order?",

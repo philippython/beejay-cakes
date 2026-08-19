@@ -80,10 +80,17 @@ create table if not exists orders (
   delivery_address text not null,
   phone text not null,
   delivery_instructions text,
-  stripe_session_id text,
+  customer_email text,
   payment_confirmed boolean not null default false,
   created_at timestamptz default now()
 );
+
+-- Safe to re-run: adds the column if you already created this table
+-- before customer_email existed here, and drops the old Stripe-specific
+-- column if you have it from an earlier version of this schema (this app
+-- now uses bank transfer, not Stripe).
+alter table orders add column if not exists customer_email text;
+alter table orders drop column if exists stripe_session_id;
 
 create table if not exists order_items (
   id uuid primary key default gen_random_uuid(),
@@ -121,6 +128,20 @@ create table if not exists wishlist_items (
   product_id uuid references products(id) on delete cascade,
   primary key (user_id, product_id)
 );
+
+-- Store-wide settings editable from /admin/settings. Singleton table —
+-- there's only ever one row (id is always `true`), so the app can just
+-- select/update it without needing to know an ID.
+create table if not exists store_settings (
+  id boolean primary key default true,
+  bank_account_name text,
+  bank_name text,
+  bank_sort_code text,
+  bank_account_number text,
+  updated_at timestamptz default now(),
+  constraint store_settings_singleton check (id = true)
+);
+insert into store_settings (id) values (true) on conflict (id) do nothing;
 
 -- Starter categories matching the storefront's fixed nav —
 -- safe to re-run, will not duplicate.

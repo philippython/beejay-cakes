@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MapPin, CreditCard, Banknote, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { MapPin, Banknote, Mail, Loader2 } from "lucide-react";
 import { useCartStore, cartSubtotal } from "@/store/cart";
-import { formatPrice, cn } from "@/lib/utils";
+import { formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { supabase } from "@/lib/supabase/client";
 
@@ -11,14 +12,15 @@ const DELIVERY_FEE = 4.99;
 
 export default function CheckoutPage() {
   const items = useCartStore((s) => s.items);
+  const clear = useCartStore((s) => s.clear);
+  const router = useRouter();
   const subtotal = cartSubtotal(items);
   const total = subtotal + (items.length ? DELIVERY_FEE : 0);
 
-  const [payment, setPayment] = useState<"card" | "transfer">("card");
   const [loading, setLoading] = useState(false);
   const [userId, setUserId] = useState<string | undefined>();
-  const [email, setEmail] = useState<string | undefined>();
   const [form, setForm] = useState({
+    email: "",
     address: "",
     phone: "",
     instructions: "",
@@ -27,15 +29,15 @@ export default function CheckoutPage() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       setUserId(data.user?.id);
-      setEmail(data.user?.email);
+      if (data.user?.email) setForm((f) => ({ ...f, email: data.user!.email! }));
     });
   }, []);
 
-  async function handlePay(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch("/api/checkout", {
+      const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -52,17 +54,18 @@ export default function CheckoutPage() {
           phone: form.phone,
           deliveryInstructions: form.instructions,
           userId,
-          customerEmail: email,
+          customerEmail: form.email,
         }),
       });
       const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
+      if (res.ok && data.orderId) {
+        clear();
+        router.push(`/checkout/success?order=${data.orderId}`);
       } else {
-        alert(data.error ?? "Something went wrong. Add your Stripe keys in .env.local to enable live checkout.");
+        alert(data.error ?? "Something went wrong placing your order.");
       }
     } catch {
-      alert("Could not start checkout. Add your Stripe keys in .env.local to enable live checkout.");
+      alert("Could not place your order. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -72,17 +75,28 @@ export default function CheckoutPage() {
     <div className="mx-auto max-w-4xl px-5 pb-32 pt-6 sm:px-8 sm:pb-16">
       <h1 className="font-display text-[26px] font-medium text-cocoa">Checkout</h1>
 
-      <form onSubmit={handlePay} className="mt-6 grid gap-8 md:grid-cols-[1fr_320px]">
+      <form onSubmit={handleSubmit} className="mt-6 grid gap-8 md:grid-cols-[1fr_320px]">
         <div className="space-y-6">
           <section className="rounded-2xl bg-surface p-5 shadow-[var(--shadow-soft)]">
             <p className="flex items-center gap-2 text-[13px] font-bold text-cocoa">
-              <MapPin className="h-4 w-4 text-honey-deep" /> Delivery address
+              <MapPin className="h-4 w-4 text-honey-deep" /> Delivery details
             </p>
+            <label className="mt-3 flex items-center gap-2.5 rounded-xl border border-cocoa/12 bg-cream/50 px-3 py-2.5">
+              <Mail className="h-4 w-4 shrink-0 text-cocoa-faint" />
+              <input
+                required
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                placeholder="Email — order updates go here"
+                className="w-full bg-transparent text-[13.5px] text-cocoa placeholder:text-cocoa-faint focus:outline-none"
+              />
+            </label>
             <textarea
               required
               value={form.address}
               onChange={(e) => setForm({ ...form, address: e.target.value })}
-              placeholder="House number, street, area, city"
+              placeholder="House number, street, area, city, postcode"
               rows={2}
               className="mt-3 w-full resize-none rounded-xl border border-cocoa/12 bg-cream/50 p-3 text-[13.5px] text-cocoa placeholder:text-cocoa-faint focus:border-honey focus:outline-none"
             />
@@ -104,36 +118,14 @@ export default function CheckoutPage() {
           </section>
 
           <section className="rounded-2xl bg-surface p-5 shadow-[var(--shadow-soft)]">
-            <p className="text-[13px] font-bold text-cocoa">Payment method</p>
-            <div className="mt-3 space-y-2.5">
-              <button
-                type="button"
-                onClick={() => setPayment("card")}
-                className={cn(
-                  "flex w-full items-center gap-3 rounded-xl border p-3.5 text-left transition-colors",
-                  payment === "card" ? "border-honey bg-honey/[0.06]" : "border-cocoa/12"
-                )}
-              >
-                <CreditCard className="h-4 w-4 text-cocoa" />
-                <span className="flex-1 text-[13.5px] font-medium text-cocoa">Pay by card (Stripe)</span>
-                {payment === "card" && <span className="h-2 w-2 rounded-full bg-honey" />}
-              </button>
-              <button
-                type="button"
-                onClick={() => setPayment("transfer")}
-                className={cn(
-                  "flex w-full items-center gap-3 rounded-xl border p-3.5 text-left transition-colors",
-                  payment === "transfer" ? "border-honey bg-honey/[0.06]" : "border-cocoa/12"
-                )}
-              >
-                <Banknote className="h-4 w-4 text-cocoa" />
-                <span className="flex-1 text-[13.5px] font-medium text-cocoa">Bank transfer</span>
-                {payment === "transfer" && <span className="h-2 w-2 rounded-full bg-honey" />}
-              </button>
+            <div className="flex items-center gap-3 rounded-xl border border-honey bg-honey/[0.06] p-3.5">
+              <Banknote className="h-4 w-4 shrink-0 text-cocoa" />
+              <span className="text-[13.5px] font-medium text-cocoa">Pay by bank transfer</span>
             </div>
             <p className="mt-3 text-[12px] leading-relaxed text-cocoa-faint">
-              Card payments are processed securely by Stripe — Beejay Cakes never sees or stores
-              your card details.
+              We&apos;ll email you our bank details and a payment reference right after you place
+              your order. Your order goes into the kitchen as soon as we&apos;ve confirmed your
+              payment's arrived.
             </p>
           </section>
         </div>
@@ -163,7 +155,7 @@ export default function CheckoutPage() {
             disabled={loading || items.length === 0}
             className="mt-2 hidden w-full md:flex"
           >
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : `Pay ${formatPrice(total)}`}
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Place order"}
           </Button>
         </aside>
 
@@ -175,7 +167,7 @@ export default function CheckoutPage() {
             disabled={loading || items.length === 0}
             className="w-full"
           >
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : `Pay ${formatPrice(total)}`}
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Place order"}
           </Button>
         </div>
       </form>

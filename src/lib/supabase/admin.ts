@@ -7,8 +7,8 @@ let client: ReturnType<typeof createSupabaseClient<Database>> | null = null;
  * Service-role Supabase client. NEVER import this into a Client Component —
  * the service role key bypasses Row Level Security entirely. Use it only
  * from Route Handlers / Server Actions that have already verified the
- * request is legitimate (e.g. a signature-checked Stripe webhook, or an
- * admin-only server action).
+ * request is legitimate (e.g. an admin-verified order action, or a
+ * server-only order-placement route), never from a Client Component.
  */
 export function createAdminClient() {
   if (!client) {

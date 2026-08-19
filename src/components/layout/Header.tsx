@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Heart, ShoppingBag, Truck } from "lucide-react";
 import { useCartStore, cartCount } from "@/store/cart";
 import { Logo } from "@/components/ui/Logo";
+import { AccountMenu } from "@/components/layout/AccountMenu";
 
 const NAV_LINKS = [
   { label: "Birthday Cakes", href: "/category/birthday-cakes" },
@@ -63,11 +64,7 @@ export function Header() {
               </span>
             )}
           </Link>
-          <Link href="/account">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-cocoa/[0.06] text-[13px] font-bold text-cocoa">
-              A
-            </div>
-          </Link>
+          <AccountMenu />
         </div>
       </div>
     </header>

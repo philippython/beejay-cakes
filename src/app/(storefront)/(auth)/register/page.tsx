@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Mail, Lock, User, Loader2 } from "lucide-react";
+import { Mail, Lock, User, Loader2, MailCheck } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { supabase } from "@/lib/supabase/client";
 
@@ -12,19 +12,48 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [checkEmail, setCheckEmail] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    const { error } = await supabase.auth.signUp({
+
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: name } },
+      options: {
+        data: { full_name: name },
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
     });
+
     setLoading(false);
-    if (error) setError(error.message);
-    else window.location.href = "/account";
+    if (error) {
+      setError(error.message);
+    } else if (!data.session) {
+      // Email confirmation is on (the default) — there's no session yet,
+      // so redirecting to /account would just show "not logged in" and
+      // look broken. Tell them to check their inbox instead.
+      setCheckEmail(true);
+    } else {
+      window.location.href = "/account";
+    }
+  }
+
+  if (checkEmail) {
+    return (
+      <div className="mx-auto flex min-h-[70vh] max-w-sm flex-col items-center justify-center px-6 py-16 text-center">
+        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-peach-tint">
+          <MailCheck className="h-6 w-6 text-honey-deep" strokeWidth={1.6} />
+        </span>
+        <h1 className="mt-5 font-display text-[22px] font-medium text-cocoa">Check your email</h1>
+        <p className="mt-1.5 text-[13.5px] leading-relaxed text-cocoa-soft">
+          We&apos;ve sent a confirmation link to <span className="font-semibold text-cocoa">{email}</span>.
+          Click it to finish creating your account.
+        </p>
+      </div>
+    );
   }
 
   return (

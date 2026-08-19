@@ -14,7 +14,7 @@ const POINTS = [
   {
     icon: ShieldCheck,
     title: "Secure checkout",
-    text: "Pay safely by card or transfer with Stripe-powered, encrypted checkout.",
+    text: "Simple bank transfer checkout — full details emailed the moment you order.",
   },
   {
     icon: Truck,

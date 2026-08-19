@@ -42,7 +42,7 @@ export type OrderRow = {
   delivery_address: string;
   phone: string;
   delivery_instructions: string | null;
-  stripe_session_id: string | null;
+  customer_email: string | null;
   payment_confirmed: boolean;
   created_at: string;
 };
@@ -68,6 +68,14 @@ export type ReviewRow = {
   created_at: string;
 };
 export type AddressRow = { id: string; user_id: string; label: string; detail: string; is_default: boolean };
+export type StoreSettingsRow = {
+  id: boolean;
+  bank_account_name: string | null;
+  bank_name: string | null;
+  bank_sort_code: string | null;
+  bank_account_number: string | null;
+  updated_at: string;
+};
 export type WishlistItemRow = { user_id: string; product_id: string };
 
 type TableDef<Row, RequiredInsertKeys extends keyof Row> = {
@@ -91,6 +99,7 @@ export type Database = {
       reviews: TableDef<ReviewRow, "product_id" | "user_id" | "rating" | "comment">;
       addresses: TableDef<AddressRow, "user_id" | "label" | "detail">;
       wishlist_items: TableDef<WishlistItemRow, "user_id" | "product_id">;
+      store_settings: TableDef<StoreSettingsRow, never>;
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
