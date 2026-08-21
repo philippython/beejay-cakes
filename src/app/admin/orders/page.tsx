@@ -47,7 +47,7 @@ export default function AdminOrdersPage() {
 
     // Goes through an API route (not a direct client update) because this
     // is also what triggers the customer's status-update email — that
-    // has to happen server-side, where RESEND_API_KEY actually lives.
+    // has to happen server-side, where the SMTP credentials actually live.
     const res = await fetch(`/api/admin/orders/${id}/status`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

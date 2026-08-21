@@ -23,12 +23,16 @@ export function AccountMenu() {
 
   if (!user) {
     return (
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2.5">
         <Link href="/login">
-          <Button variant="ghost" size="sm">Log in</Button>
+          <Button variant="ghost" size="sm" className="h-10 px-4">
+            Log in
+          </Button>
         </Link>
         <Link href="/register">
-          <Button variant="primary" size="sm">Create account</Button>
+          <Button variant="primary" size="sm" className="h-10 px-5">
+            Create account
+          </Button>
         </Link>
       </div>
     );

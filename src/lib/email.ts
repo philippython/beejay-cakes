@@ -1,35 +1,54 @@
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 import { formatPrice } from "@/lib/utils";
 import type { OrderStatusDb } from "@/lib/database.types";
 import type { BankDetails } from "@/lib/data/settings";
 
-let client: Resend | null = null;
+let transporter: ReturnType<typeof nodemailer.createTransport> | null = null;
 
-function getResend() {
-  if (!client) {
-    const key = process.env.RESEND_API_KEY;
-    if (!key) {
-      throw new Error("RESEND_API_KEY is not set. Add it to .env — see .env.example.");
+/** Plain SMTP via Nodemailer — works with any provider (Zoho, Google
+ *  Workspace, Amazon SES, your host's email hosting, etc.), not tied to
+ *  a specific vendor. Point it at whichever one you're using via these
+ *  four env vars. */
+function getTransporter() {
+  if (!transporter) {
+    const host = process.env.SMTP_HOST;
+    const port = process.env.SMTP_PORT;
+    const user = process.env.SMTP_USER;
+    const pass = process.env.SMTP_PASSWORD;
+
+    if (!host || !port || !user || !pass) {
+      throw new Error(
+        "SMTP is not configured. Add SMTP_HOST, SMTP_PORT, SMTP_USER and SMTP_PASSWORD to .env — see .env.example."
+      );
     }
-    client = new Resend(key);
+
+    transporter = nodemailer.createTransport({
+      host,
+      port: Number(port),
+      secure: Number(port) === 465, // 465 = implicit TLS, 587/25 = STARTTLS
+      auth: { user, pass },
+    });
   }
-  return client;
+  return transporter;
 }
 
-const FROM = () => process.env.RESEND_FROM_EMAIL || "Beejay Cakes <orders@beejaycakes.com>";
+const FROM = () => process.env.SMTP_FROM || "Beejay Cakes <orders@beejaycakes.com>";
+
+const SMTP_CONFIGURED = () =>
+  !!(process.env.SMTP_HOST && process.env.SMTP_PORT && process.env.SMTP_USER && process.env.SMTP_PASSWORD);
 
 /** Never throws — an email failure should never take down order
  *  submission or an admin action, since the underlying database change
  *  already succeeded by the time this runs. Just logs so it's visible
  *  server-side. */
 async function send(to: string, subject: string, html: string, context: string) {
-  if (!process.env.RESEND_API_KEY) {
+  if (!SMTP_CONFIGURED()) {
     // eslint-disable-next-line no-console
-    console.warn(`RESEND_API_KEY not set — skipping ${context} email.`);
+    console.warn(`SMTP not configured — skipping ${context} email.`);
     return;
   }
   try {
-    await getResend().emails.send({ from: FROM(), to, subject, html });
+    await getTransporter().sendMail({ from: FROM(), to, subject, html });
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error(`Failed to send ${context} email`, err);

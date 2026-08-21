@@ -52,7 +52,7 @@ a transfer's arrived without a gateway.
 | `/admin/*` route protection | Real — middleware checks `role = 'admin'` (`src/proxy.ts`) |
 | Products & Categories | Wired to Supabase — storefront reads live, admin panel writes live |
 | Orders | Wired to Supabase — created on checkout, every status change (including payment confirmation) persists and emails the customer |
-| Order emails | Real, via Resend — order received (customer), new order (admin), payment confirmed (customer), status updates (customer). All need `RESEND_API_KEY` set |
+| Order emails | Real, via SMTP (Nodemailer, any provider) — order received (customer), new order (admin), payment confirmed (customer), status updates (customer). Need `SMTP_HOST`/`SMTP_PORT`/`SMTP_USER`/`SMTP_PASSWORD` set |
 | Customers, Reviews (admin pages) | Still local-state demos — not yet wired to Supabase |
 | Product photography | Illustrated placeholder tiles — swap for real photos via Cloudinary (see below) |
 
@@ -117,26 +117,35 @@ hacks.
      where id = (select id from auth.users where email = 'you@example.com');
    ```
    That account can now reach `/admin` — everyone else gets redirected.
-6. Authentication → SMTP Settings: connect Resend as custom SMTP (see
+6. Authentication → SMTP Settings: connect a custom SMTP provider (see
    below) so signup/login emails don't hit Supabase's very low free-tier
    send limit. Authentication → URL Configuration: set your Site URL and
    add `<yourdomain>/auth/callback` (and `http://localhost:3000/auth/callback`
    for local dev) to Redirect URLs — without this, email confirmation
    links won't work.
 
-### 2. Resend (order emails)
+### 2. SMTP (order emails)
 
 This is separate from step 6 above — that's Supabase's own login emails;
-this is the order emails this app sends itself.
+this is the order emails this app sends itself, via plain SMTP
+(Nodemailer — `src/lib/email.ts`). Works with any provider; no vendor
+lock-in. If you don't have an email inbox on your domain yet, Zoho Mail's
+free plan is the easiest way to get one and its SMTP:
 
-1. Sign up at [resend.com](https://resend.com) (free: 3,000 emails/month).
-2. Add and verify your domain (Resend gives you DNS records to add at
-   your domain registrar).
-3. Create an API key → put it in `.env.local` as `RESEND_API_KEY`.
-4. Set `RESEND_FROM_EMAIL` to something on your verified domain, e.g.
-   `"Beejay Cakes <orders@beejaycakes.com>"`.
-5. Set `ADMIN_NOTIFICATION_EMAIL` to the inbox you actually want new-order
-   alerts in.
+1. Sign up at [zoho.com/mail](https://www.zoho.com/mail/) (free for one
+   domain), add your domain, verify it (DNS records, similar to any
+   other provider), create a mailbox like `orders@yourdomain.com`.
+2. In `.env.local`: `SMTP_HOST=smtp.zoho.com`, `SMTP_PORT=587`,
+   `SMTP_USER=orders@yourdomain.com`, `SMTP_PASSWORD=` (an app-specific
+   password from Zoho's security settings, not your login password).
+3. Set `SMTP_FROM="Beejay Cakes <orders@yourdomain.com>"`.
+4. Set `ADMIN_NOTIFICATION_EMAIL` to the inbox you actually want new-order
+   alerts in (can be the same mailbox, or a different one).
+
+Other providers work the same way, just with different host/port values:
+Google Workspace (`smtp.gmail.com:587`), Amazon SES (cheapest at real
+volume, but needs an AWS account and starts in a sending sandbox), or
+whatever SMTP your domain host already gives you.
 
 ### 3. Your bank details
 
