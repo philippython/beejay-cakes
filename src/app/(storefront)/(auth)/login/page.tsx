@@ -20,14 +20,25 @@ function LoginForm() {
     setLoading(true);
     setError(null);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-      if (error)
+      // eslint-disable-next-line no-console
+      console.log("[login] signInWithPassword result:", { data, error });
+      if (error) {
+        // eslint-disable-next-line no-console
+        console.error("[login] Supabase returned an error:", error);
         setError(error.message || "Something went wrong — please try again.");
-      else window.location.href = params.get("next") ?? "/account";
-    } catch {
+      } else {
+        window.location.href = params.get("next") ?? "/account";
+      }
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(
+        "[login] signInWithPassword threw (network/config problem):",
+        err,
+      );
       setError("We couldn't reach the server — please try again in a moment.");
     } finally {
       setLoading(false);

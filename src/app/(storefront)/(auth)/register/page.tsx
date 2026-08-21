@@ -29,7 +29,12 @@ export default function RegisterPage() {
         },
       });
 
+      // eslint-disable-next-line no-console
+      console.log("[register] signUp result:", { data, error });
+
       if (error) {
+        // eslint-disable-next-line no-console
+        console.error("[register] Supabase returned an error:", error);
         setError(error.message || "Something went wrong — please try again.");
       } else if (
         data.user &&
@@ -39,19 +44,33 @@ export default function RegisterPage() {
         // Supabase's way of signalling "this email already has an account"
         // without confirming it outright (anti-enumeration) — no email
         // actually gets sent in this case, so don't claim one did.
+        // eslint-disable-next-line no-console
+        console.log(
+          "[register] Email already registered (identities.length === 0)",
+        );
         setError("This email already has an account — try logging in instead.");
       } else if (!data.session) {
         // Email confirmation is on (the default) — there's no session yet,
         // so redirecting to /account would just show "not logged in" and
         // look broken. Tell them to check their inbox instead.
+        // eslint-disable-next-line no-console
+        console.log(
+          "[register] No session — email confirmation required, showing 'check your email'",
+        );
         setCheckEmail(true);
       } else {
+        // eslint-disable-next-line no-console
+        console.log(
+          "[register] Session created immediately — email confirmation is OFF",
+        );
         window.location.href = "/account";
       }
-    } catch {
+    } catch (err) {
       // A thrown (not returned) error means signUp couldn't even reach
       // Supabase — almost always missing/wrong NEXT_PUBLIC_SUPABASE_URL
       // or NEXT_PUBLIC_SUPABASE_ANON_KEY in this environment.
+      // eslint-disable-next-line no-console
+      console.error("[register] signUp threw (network/config problem):", err);
       setError("We couldn't reach the server — please try again in a moment.");
     } finally {
       setLoading(false);
