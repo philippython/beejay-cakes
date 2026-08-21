@@ -7,8 +7,12 @@ const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-anon-k
 if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
   // Loud in dev, harmless in prod builds — prevents silent auth/data failures.
   // eslint-disable-next-line no-console
-  console.warn(
-    "Supabase env vars are missing. Copy .env.example to .env.local and fill in your project's URL and anon key."
+  console.error(
+    "%c⚠ Supabase is NOT configured — using placeholder credentials, every auth/data call will fail.\n" +
+      "NEXT_PUBLIC_SUPABASE_URL and/or NEXT_PUBLIC_SUPABASE_ANON_KEY are missing from the environment " +
+      "this app is actually running in. If you're testing a deployed site, your local .env file does not " +
+      "reach it — add these two vars in that platform's environment variable settings and redeploy.",
+    "font-size: 13px; font-weight: bold; color: #c71880;"
   );
 }
 

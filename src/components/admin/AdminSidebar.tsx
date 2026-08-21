@@ -2,28 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  LayoutDashboard,
-  Package,
-  Receipt,
-  Tags,
-  Users,
-  MessageSquareText,
-  Settings,
-  ArrowLeft,
-} from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/ui/Logo";
-
-const NAV = [
-  { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
-  { label: "Products", href: "/admin/products", icon: Package },
-  { label: "Orders", href: "/admin/orders", icon: Receipt },
-  { label: "Categories", href: "/admin/categories", icon: Tags },
-  { label: "Customers", href: "/admin/customers", icon: Users },
-  { label: "Reviews", href: "/admin/reviews", icon: MessageSquareText },
-  { label: "Settings", href: "/admin/settings", icon: Settings },
-];
+import { ADMIN_NAV } from "./adminNav";
 
 export function AdminSidebar() {
   const pathname = usePathname();
@@ -35,7 +17,7 @@ export function AdminSidebar() {
       </Link>
 
       <nav className="flex-1 space-y-1 px-3">
-        {NAV.map((item) => {
+        {ADMIN_NAV.map((item) => {
           const active = item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href);
           return (
             <Link
