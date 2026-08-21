@@ -19,25 +19,42 @@ export default function RegisterPage() {
     setLoading(true);
     setError(null);
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: name },
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: name },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
 
-    setLoading(false);
-    if (error) {
-      setError(error.message);
-    } else if (!data.session) {
-      // Email confirmation is on (the default) — there's no session yet,
-      // so redirecting to /account would just show "not logged in" and
-      // look broken. Tell them to check their inbox instead.
-      setCheckEmail(true);
-    } else {
-      window.location.href = "/account";
+      if (error) {
+        setError(error.message || "Something went wrong — please try again.");
+      } else if (
+        data.user &&
+        data.user.identities &&
+        data.user.identities.length === 0
+      ) {
+        // Supabase's way of signalling "this email already has an account"
+        // without confirming it outright (anti-enumeration) — no email
+        // actually gets sent in this case, so don't claim one did.
+        setError("This email already has an account — try logging in instead.");
+      } else if (!data.session) {
+        // Email confirmation is on (the default) — there's no session yet,
+        // so redirecting to /account would just show "not logged in" and
+        // look broken. Tell them to check their inbox instead.
+        setCheckEmail(true);
+      } else {
+        window.location.href = "/account";
+      }
+    } catch {
+      // A thrown (not returned) error means signUp couldn't even reach
+      // Supabase — almost always missing/wrong NEXT_PUBLIC_SUPABASE_URL
+      // or NEXT_PUBLIC_SUPABASE_ANON_KEY in this environment.
+      setError("We couldn't reach the server — please try again in a moment.");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -47,10 +64,13 @@ export default function RegisterPage() {
         <span className="flex h-14 w-14 items-center justify-center rounded-full bg-peach-tint">
           <MailCheck className="h-6 w-6 text-honey-deep" strokeWidth={1.6} />
         </span>
-        <h1 className="mt-5 font-display text-[22px] font-medium text-cocoa">Check your email</h1>
+        <h1 className="mt-5 font-display text-[22px] font-medium text-cocoa">
+          Check your email
+        </h1>
         <p className="mt-1.5 text-[13.5px] leading-relaxed text-cocoa-soft">
-          We&apos;ve sent a confirmation link to <span className="font-semibold text-cocoa">{email}</span>.
-          Click it to finish creating your account.
+          We&apos;ve sent a confirmation link to{" "}
+          <span className="font-semibold text-cocoa">{email}</span>. Click it to
+          finish creating your account.
         </p>
       </div>
     );
@@ -103,10 +123,22 @@ export default function RegisterPage() {
           />
         </label>
 
-        {error && <p className="text-[12.5px] font-medium text-rose-deep">{error}</p>}
+        {error && (
+          <p className="text-[12.5px] font-medium text-rose-deep">{error}</p>
+        )}
 
-        <Button type="submit" variant="primary" size="lg" disabled={loading} className="w-full">
-          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create account"}
+        <Button
+          type="submit"
+          variant="primary"
+          size="lg"
+          disabled={loading}
+          className="w-full"
+        >
+          {loading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            "Create account"
+          )}
         </Button>
       </form>
 

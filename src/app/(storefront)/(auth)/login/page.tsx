@@ -19,10 +19,19 @@ function LoginForm() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) setError(error.message);
-    else window.location.href = params.get("next") ?? "/account";
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error)
+        setError(error.message || "Something went wrong — please try again.");
+      else window.location.href = params.get("next") ?? "/account";
+    } catch {
+      setError("We couldn't reach the server — please try again in a moment.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -59,14 +68,23 @@ function LoginForm() {
           />
         </label>
 
-        {error && <p className="text-[12.5px] font-medium text-rose-deep">{error}</p>}
+        {error && (
+          <p className="text-[12.5px] font-medium text-rose-deep">{error}</p>
+        )}
         {!error && params.get("error") === "confirmation_failed" && (
           <p className="text-[12.5px] font-medium text-rose-deep">
-            That confirmation link didn&apos;t work — it may have expired. Try logging in, or register again.
+            That confirmation link didn&apos;t work — it may have expired. Try
+            logging in, or register again.
           </p>
         )}
 
-        <Button type="submit" variant="primary" size="lg" disabled={loading} className="w-full">
+        <Button
+          type="submit"
+          variant="primary"
+          size="lg"
+          disabled={loading}
+          className="w-full"
+        >
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Log in"}
         </Button>
       </form>
