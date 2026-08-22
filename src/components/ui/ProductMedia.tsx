@@ -24,7 +24,8 @@ const TONES: Record<string, Tone> = {
   "treat-boxes": { bg: "#F6E9F6", fg: "#9C2E7A", icon: Gift },
 };
 
-function toneFor(tag: string): Tone {
+function toneFor(tag?: string): Tone {
+  if (!tag) return TONES.birthday;
   const key = Object.keys(TONES).find((k) => tag.startsWith(k));
   return TONES[key ?? "birthday"];
 }
@@ -34,21 +35,22 @@ export function ProductMedia({
   className,
   iconClassName,
 }: {
-  tag: string;
+  tag?: string;
   className?: string;
   iconClassName?: string;
 }) {
   const { bg, fg, icon: Icon } = toneFor(tag);
+  const patternId = `dots-${tag ?? "default"}`;
   return (
     <div
       className={cn("relative flex items-center justify-center overflow-hidden", className)}
       style={{ backgroundColor: bg }}
     >
       <svg className="absolute inset-0 h-full w-full opacity-40" aria-hidden="true">
-        <pattern id={`dots-${tag}`} width="18" height="18" patternUnits="userSpaceOnUse">
+        <pattern id={patternId} width="18" height="18" patternUnits="userSpaceOnUse">
           <circle cx="2" cy="2" r="1.4" fill={fg} fillOpacity="0.25" />
         </pattern>
-        <rect width="100%" height="100%" fill={`url(#dots-${tag})`} />
+        <rect width="100%" height="100%" fill={`url(#${patternId})`} />
       </svg>
       <div
         className="absolute -right-6 -top-6 h-24 w-24 rounded-full opacity-30"
