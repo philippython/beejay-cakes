@@ -83,7 +83,7 @@ function itemRow(item: OrderEmailItem) {
     </tr>`;
 }
 
-function itemsTotalTable(items: OrderEmailItem[], subtotal: number, deliveryFee: number, total: number) {
+function itemsTotalTable(items: OrderEmailItem[], subtotal: number, total: number) {
   return `
     <table style="width:100%;border-collapse:collapse;">${items.map(itemRow).join("")}</table>
     <table style="width:100%;border-collapse:collapse;margin-top:8px;">
@@ -92,8 +92,8 @@ function itemsTotalTable(items: OrderEmailItem[], subtotal: number, deliveryFee:
         <td style="padding:6px 0;text-align:right;font-size:13.5px;color:#2E1A47;">${escapeHtml(formatPrice(subtotal))}</td>
       </tr>
       <tr>
-        <td style="padding:6px 0;font-size:13.5px;color:#6b5c82;">Delivery fee</td>
-        <td style="padding:6px 0;text-align:right;font-size:13.5px;color:#2E1A47;">${escapeHtml(formatPrice(deliveryFee))}</td>
+        <td style="padding:6px 0;font-size:13.5px;color:#6b5c82;">Delivery</td>
+        <td style="padding:6px 0;text-align:right;font-size:13.5px;color:#6b5c82;">To be confirmed</td>
       </tr>
       <tr>
         <td style="padding:10px 0 0;font-size:15px;font-weight:700;color:#2E1A47;border-top:1px solid #ede3f2;">Total</td>
@@ -144,7 +144,6 @@ type OrderReceivedInput = {
   orderId: string;
   items: OrderEmailItem[];
   subtotal: number;
-  deliveryFee: number;
   total: number;
   deliveryAddress: string;
   bankDetails: BankDetails;
@@ -163,7 +162,7 @@ export async function sendOrderReceivedEmail(input: OrderReceivedInput) {
       soon as payment's confirmed — details below.
     </p>
 
-    ${itemsTotalTable(input.items, input.subtotal, input.deliveryFee, input.total)}
+    ${itemsTotalTable(input.items, input.subtotal, input.total)}
     ${bankDetailsBlock(ref, input.bankDetails)}
 
     <div style="margin-top:14px;padding:14px 16px;background:#f3ecf7;border-radius:12px;">
@@ -182,7 +181,6 @@ type AdminNewOrderInput = {
   orderId: string;
   items: OrderEmailItem[];
   subtotal: number;
-  deliveryFee: number;
   total: number;
   deliveryAddress: string;
   phone: string;
@@ -209,7 +207,7 @@ export async function sendAdminNewOrderEmail(input: AdminNewOrderInput) {
       <strong style="color:#2E1A47;">${ref}</strong>), then confirm it in the admin panel.
     </p>
 
-    ${itemsTotalTable(input.items, input.subtotal, input.deliveryFee, input.total)}
+    ${itemsTotalTable(input.items, input.subtotal, input.total)}
 
     <div style="margin-top:14px;padding:14px 16px;background:#f3ecf7;border-radius:12px;">
       <p style="margin:0 0 6px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.03em;color:#6b2ea8;">Customer</p>

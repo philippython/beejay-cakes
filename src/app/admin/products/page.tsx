@@ -52,6 +52,7 @@ export default function AdminProductsPage() {
         stock: 0,
         flavours: p.flavours.join(", "),
         sizes: p.sizes.map((s) => `${s.label}:${s.priceModifier}`).join(", "),
+        images: p.images,
         featured: !!p.isFeatured,
         enabled: true,
       },

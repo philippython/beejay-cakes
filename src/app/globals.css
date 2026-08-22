@@ -13,6 +13,13 @@
    hex values change.
 --------------------------------------------------------- */
 :root {
+  /* Real height of the mobile BottomNav (68px fixed content row + safe-area
+     bottom inset, min 10px on devices with none). Every sticky action bar
+     that needs to sit just above the bottom nav uses this instead of a
+     hardcoded guess — hardcoding it separately in each file is exactly
+     how it drifted out of sync and got buttons hidden behind the nav. */
+  --bottom-nav-h: calc(68px + max(env(safe-area-inset-bottom), 10px));
+
   --color-cream: #faf7fc;
   --color-cream-deep: #f3ecf7;
   --color-surface: #ffffff;

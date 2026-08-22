@@ -9,8 +9,6 @@ import { QuantityStepper } from "@/components/product/QuantityStepper";
 import { ProductMedia } from "@/components/ui/ProductMedia";
 import { Button } from "@/components/ui/Button";
 
-const DELIVERY_FEE = 4.99;
-
 export default function CartPage() {
   const items = useCartStore((s) => s.items);
   const setQuantity = useCartStore((s) => s.setQuantity);
@@ -20,8 +18,7 @@ export default function CartPage() {
 
   const subtotal = cartSubtotal(items);
   const discount = couponApplied ? Math.round(subtotal * 0.1) : 0;
-  const deliveryFee = items.length ? DELIVERY_FEE : 0;
-  const total = subtotal - discount + deliveryFee;
+  const total = subtotal - discount;
 
   if (items.length === 0) {
     return (
@@ -115,16 +112,19 @@ export default function CartPage() {
           </div>
         )}
         <div className="flex justify-between text-[13.5px] text-cocoa-soft">
-          <span>Delivery fee</span>
-          <span className="tabular-nums text-cocoa">{formatPrice(deliveryFee)}</span>
+          <span>Delivery</span>
+          <span className="text-cocoa">Arranged with you directly</span>
         </div>
         <div className="mt-2 flex justify-between border-t border-line/70 pt-3 text-[16px] font-bold text-cocoa">
           <span>Total</span>
           <span className="tabular-nums">{formatPrice(total)}</span>
         </div>
       </div>
+      <p className="mt-2 text-[12px] text-cocoa-faint">
+        Delivery cost isn&apos;t included yet — we&apos;ll confirm it with you after you order.
+      </p>
 
-      <div className="fixed inset-x-0 bottom-[64px] z-30 border-t border-line/70 bg-white/95 px-5 py-3 backdrop-blur-md sm:static sm:mt-6 sm:border-none sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
+      <div className="fixed inset-x-0 bottom-[var(--bottom-nav-h)] z-50 border-t border-line/70 bg-white/95 px-5 py-3 backdrop-blur-md sm:static sm:mt-6 sm:border-none sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
         <Link href="/checkout">
           <Button variant="primary" size="lg" className="w-full justify-between px-6">
             Checkout · {formatPrice(total)}

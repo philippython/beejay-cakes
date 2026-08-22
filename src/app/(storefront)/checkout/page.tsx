@@ -8,14 +8,12 @@ import { formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { supabase } from "@/lib/supabase/client";
 
-const DELIVERY_FEE = 4.99;
-
 export default function CheckoutPage() {
   const items = useCartStore((s) => s.items);
   const clear = useCartStore((s) => s.clear);
   const router = useRouter();
   const subtotal = cartSubtotal(items);
-  const total = subtotal + (items.length ? DELIVERY_FEE : 0);
+  const total = subtotal;
 
   const [loading, setLoading] = useState(false);
   const [userId, setUserId] = useState<string | undefined>();
@@ -49,7 +47,6 @@ export default function CheckoutPage() {
             unitPrice: i.unitPrice,
             quantity: i.quantity,
           })),
-          deliveryFee: items.length ? DELIVERY_FEE : 0,
           deliveryAddress: form.address,
           phone: form.phone,
           deliveryInstructions: form.instructions,
@@ -125,7 +122,8 @@ export default function CheckoutPage() {
             <p className="mt-3 text-[12px] leading-relaxed text-cocoa-faint">
               We&apos;ll email you our bank details and a payment reference right after you place
               your order. Your order goes into the kitchen as soon as we&apos;ve confirmed your
-              payment's arrived.
+              payment's arrived. Delivery cost isn&apos;t included below — we&apos;ll confirm that
+              with you directly once we have your order.
             </p>
           </section>
         </div>
@@ -140,8 +138,8 @@ export default function CheckoutPage() {
             </div>
           ))}
           <div className="flex justify-between border-t border-line/70 pt-2.5 text-[13px] text-cocoa-soft">
-            <span>Delivery fee</span>
-            <span className="tabular-nums text-cocoa">{formatPrice(items.length ? DELIVERY_FEE : 0)}</span>
+            <span>Delivery</span>
+            <span className="text-cocoa">To be confirmed</span>
           </div>
           <div className="flex justify-between border-t border-line/70 pt-2.5 text-[16px] font-bold text-cocoa">
             <span>Total</span>
@@ -159,7 +157,7 @@ export default function CheckoutPage() {
           </Button>
         </aside>
 
-        <div className="fixed inset-x-0 bottom-[64px] z-30 border-t border-line/70 bg-white/95 px-5 py-3 backdrop-blur-md md:hidden">
+        <div className="fixed inset-x-0 bottom-[var(--bottom-nav-h)] z-50 border-t border-line/70 bg-white/95 px-5 py-3 backdrop-blur-md md:hidden">
           <Button
             type="submit"
             variant="primary"

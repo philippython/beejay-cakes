@@ -14,7 +14,6 @@ type OrderItemInput = {
 
 type OrderBody = {
   items: OrderItemInput[];
-  deliveryFee: number;
   deliveryAddress: string;
   phone: string;
   deliveryInstructions?: string;
@@ -26,7 +25,9 @@ type OrderBody = {
 // confirmed) — there's no payment gateway in this flow. Payment happens
 // by bank transfer, using the details emailed to the customer here. The
 // admin confirms it manually in /admin/orders once it lands, which is
-// what actually moves the order to "confirmed".
+// what actually moves the order to "confirmed". Delivery cost isn't
+// calculated here at all — it's arranged directly with the customer
+// after the order comes in, so it's always 0 in the database.
 export async function POST(req: NextRequest) {
   try {
     const body: OrderBody = await req.json();
@@ -42,7 +43,7 @@ export async function POST(req: NextRequest) {
     }
 
     const subtotal = body.items.reduce((s, i) => s + i.unitPrice * i.quantity, 0);
-    const total = subtotal + body.deliveryFee;
+    const total = subtotal;
 
     const supabase = createAdminClient();
 
@@ -52,7 +53,7 @@ export async function POST(req: NextRequest) {
         user_id: body.userId || null,
         status: "pending",
         subtotal,
-        delivery_fee: body.deliveryFee,
+        delivery_fee: 0,
         total,
         delivery_address: body.deliveryAddress,
         phone: body.phone,
@@ -95,7 +96,6 @@ export async function POST(req: NextRequest) {
         orderId: order.id,
         items: emailItems,
         subtotal,
-        deliveryFee: body.deliveryFee,
         total,
         deliveryAddress: body.deliveryAddress,
         bankDetails,
@@ -104,7 +104,6 @@ export async function POST(req: NextRequest) {
         orderId: order.id,
         items: emailItems,
         subtotal,
-        deliveryFee: body.deliveryFee,
         total,
         deliveryAddress: body.deliveryAddress,
         phone: body.phone,

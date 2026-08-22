@@ -8,6 +8,7 @@ export type AdminProductInput = {
   stock: number;
   flavours: string[];
   sizes: { label: string; priceModifier: number }[];
+  images: string[];
   featured: boolean;
   enabled: boolean;
 };
@@ -59,9 +60,10 @@ export async function updateProduct(id: string, input: AdminProductInput) {
 
   if (error) throw error;
 
-  // Simplest correct approach: replace sizes/flavours wholesale on every save.
+  // Simplest correct approach: replace sizes/flavours/images wholesale on every save.
   await supabase.from("product_sizes").delete().eq("product_id", id);
   await supabase.from("product_flavours").delete().eq("product_id", id);
+  await supabase.from("product_images").delete().eq("product_id", id);
   await writeRelations(id, input);
 }
 
@@ -75,6 +77,11 @@ async function writeRelations(productId: string, input: AdminProductInput) {
     await supabase
       .from("product_flavours")
       .insert(input.flavours.map((name) => ({ product_id: productId, name })));
+  }
+  if (input.images.length) {
+    await supabase
+      .from("product_images")
+      .insert(input.images.map((url, i) => ({ product_id: productId, url, sort_order: i })));
   }
 }
 

@@ -21,18 +21,18 @@ export function BottomNav() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-line/70 bg-white/95 pb-[max(env(safe-area-inset-bottom),10px)] pt-2 backdrop-blur-md md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-line/70 bg-white/95 pb-[max(env(safe-area-inset-bottom),10px)] backdrop-blur-md md:hidden"
       style={{ boxShadow: "0 -4px 20px rgba(59,36,21,0.06)" }}
     >
-      <ul className="mx-auto grid max-w-md grid-cols-5">
+      <ul className="mx-auto grid h-[68px] max-w-md grid-cols-5">
         {ITEMS.map((item) => {
           const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
           const Icon = item.icon;
           return (
-            <li key={item.href}>
+            <li key={item.href} className="flex">
               <Link
                 href={item.href}
-                className="flex flex-col items-center gap-1 py-1.5 active:scale-95 transition-transform"
+                className="flex flex-1 flex-col items-center justify-center gap-1 active:scale-95 transition-transform"
               >
                 <span className="relative flex h-8 w-8 items-center justify-center">
                   <Icon

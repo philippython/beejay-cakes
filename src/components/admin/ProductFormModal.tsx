@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { UploadCloud } from "lucide-react";
+import { UploadCloud, X, Loader2 } from "lucide-react";
 import { Modal } from "../ui/Modal";
 import { Button } from "../ui/Button";
 import { Toggle } from "../ui/Toggle";
 import { Category } from "@/lib/types";
 import { AdminProductInput } from "@/lib/data/admin-products";
+import { uploadImageToCloudinary, CloudinaryUploadError } from "@/lib/cloudinary";
 
 export type AdminProductFormValues = {
   name: string;
@@ -16,6 +17,7 @@ export type AdminProductFormValues = {
   stock: number;
   flavours: string; // comma-separated in the UI
   sizes: string; // "Label:modifier, Label:modifier" in the UI
+  images: string[];
   featured: boolean;
   enabled: boolean;
 };
@@ -40,6 +42,7 @@ export function toProductInput(form: AdminProductFormValues): AdminProductInput 
     stock: form.stock,
     flavours: form.flavours.split(",").map((f) => f.trim()).filter(Boolean),
     sizes: parseSizes(form.sizes),
+    images: form.images,
     featured: form.featured,
     enabled: form.enabled,
   };
@@ -66,14 +69,38 @@ export function ProductFormModal({
       stock: 10,
       flavours: "",
       sizes: "",
+      images: [],
       featured: false,
       enabled: true,
     }
   );
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   function set<K extends keyof AdminProductFormValues>(key: K, value: AdminProductFormValues[K]) {
     setForm((f) => ({ ...f, [key]: value }));
+  }
+
+  async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = ""; // allow selecting the same file again later
+    if (!files.length) return;
+
+    setUploading(true);
+    setUploadError(null);
+    try {
+      const urls = await Promise.all(files.map(uploadImageToCloudinary));
+      setForm((f) => ({ ...f, images: [...f.images, ...urls] }));
+    } catch (err) {
+      setUploadError(err instanceof CloudinaryUploadError ? err.message : "Upload failed — please try again.");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  function removeImage(url: string) {
+    setForm((f) => ({ ...f, images: f.images.filter((i) => i !== url) }));
   }
 
   return (
@@ -91,14 +118,60 @@ export function ProductFormModal({
         }}
         className="space-y-4"
       >
-        <label className="flex h-28 cursor-pointer flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed border-cocoa/15 bg-cream/50 text-cocoa-faint">
-          <UploadCloud className="h-5 w-5" />
-          <span className="text-center text-[12px] font-medium px-4">
-            Photo upload needs Cloudinary connected — see README. For now, add images after
-            saving via the product&apos;s Supabase row.
-          </span>
-          <input type="file" multiple accept="image/*" className="hidden" disabled />
-        </label>
+        <div>
+          <label
+            className={`flex h-24 cursor-pointer flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed text-cocoa-faint transition-colors ${
+              uploading ? "border-honey/40 bg-honey/[0.04]" : "border-cocoa/15 bg-cream/50 hover:border-cocoa/25"
+            }`}
+          >
+            {uploading ? (
+              <>
+                <Loader2 className="h-5 w-5 animate-spin text-honey-deep" />
+                <span className="text-[12px] font-medium">Uploading…</span>
+              </>
+            ) : (
+              <>
+                <UploadCloud className="h-5 w-5" />
+                <span className="text-[12px] font-medium">
+                  Upload photos — first one becomes the cover image
+                </span>
+              </>
+            )}
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              className="hidden"
+              disabled={uploading}
+              onChange={handleFileSelect}
+            />
+          </label>
+          {uploadError && <p className="mt-1.5 text-[12px] font-medium text-rose-deep">{uploadError}</p>}
+
+          {form.images.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-2.5">
+              {form.images.map((url, i) => (
+                <div key={url} className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={url} alt="" className="h-full w-full object-cover" />
+                  {i === 0 && (
+                    <span className="absolute bottom-0 left-0 right-0 bg-cocoa/80 py-0.5 text-center text-[8px] font-bold uppercase tracking-wide text-cream">
+                      Cover
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    aria-label="Remove image"
+                    onClick={() => removeImage(url)}
+                    className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-cocoa/70 text-cream"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         <div>
           <label className="text-[12px] font-semibold text-cocoa-soft">Product name</label>
@@ -196,7 +269,7 @@ export function ProductFormModal({
           <Toggle checked={form.enabled} onChange={(v) => set("enabled", v)} />
         </div>
 
-        <Button type="submit" variant="primary" size="lg" className="w-full" disabled={saving}>
+        <Button type="submit" variant="primary" size="lg" className="w-full" disabled={saving || uploading}>
           {saving ? "Saving…" : initial ? "Save changes" : "Add product"}
         </Button>
       </form>
