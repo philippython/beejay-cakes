@@ -52,6 +52,7 @@ export default function AdminProductsPage() {
         stock: 0,
         flavours: p.flavours.join(", "),
         sizes: p.sizes.map((s) => `${s.label}:${s.priceModifier}`).join(", "),
+        addOns: p.addOns.map((a) => `${a.label}:${a.price}`).join(", "),
         images: p.images,
         featured: !!p.isFeatured,
         enabled: true,
@@ -71,8 +72,13 @@ export default function AdminProductsPage() {
   }
 
   async function handleDelete(id: string) {
-    await deleteProduct(id);
-    setItems((prev) => prev.filter((p) => p.id !== id));
+    if (!confirm("Delete this product? This can't be undone.")) return;
+    try {
+      await deleteProduct(id);
+      setItems((prev) => prev.filter((p) => p.id !== id));
+    } catch (err) {
+      alert(err instanceof Error ? `Couldn't delete: ${err.message}` : "Couldn't delete this product.");
+    }
   }
 
   async function toggleFeatured(p: Product) {

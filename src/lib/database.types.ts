@@ -32,6 +32,7 @@ export type ProductRow = {
 export type ProductImageRow = { id: string; product_id: string; url: string; sort_order: number };
 export type ProductSizeRow = { id: string; product_id: string; label: string; price_modifier: number };
 export type ProductFlavourRow = { id: string; product_id: string; name: string };
+export type ProductAddonRow = { id: string; product_id: string; label: string; price: number };
 export type OrderRow = {
   id: string;
   user_id: string | null;
@@ -94,6 +95,7 @@ export type Database = {
       product_images: TableDef<ProductImageRow, "product_id" | "url">;
       product_sizes: TableDef<ProductSizeRow, "product_id" | "label">;
       product_flavours: TableDef<ProductFlavourRow, "product_id" | "name">;
+      product_addons: TableDef<ProductAddonRow, "product_id" | "label">;
       orders: TableDef<OrderRow, never>;
       order_items: TableDef<OrderItemRow, "order_id" | "name" | "unit_price" | "quantity">;
       reviews: TableDef<ReviewRow, "product_id" | "user_id" | "rating" | "comment">;

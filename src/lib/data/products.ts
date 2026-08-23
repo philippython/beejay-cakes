@@ -7,6 +7,7 @@ type DbProductRow = Database["public"]["Tables"]["products"]["Row"] & {
   product_images: { url: string; sort_order: number }[];
   product_sizes: { id: string; label: string; price_modifier: number }[];
   product_flavours: { name: string }[];
+  product_addons: { id: string; label: string; price: number }[];
 };
 
 const PRODUCT_SELECT = `
@@ -14,7 +15,8 @@ const PRODUCT_SELECT = `
   categories ( name ),
   product_images ( url, sort_order ),
   product_sizes ( id, label, price_modifier ),
-  product_flavours ( name )
+  product_flavours ( name ),
+  product_addons ( id, label, price )
 `;
 
 // Rating/review count aren't stored as columns — they're derived from the
@@ -41,6 +43,7 @@ function mapProduct(row: DbProductRow, rating = 0, reviewCount = 0): Product {
       label: s.label,
       priceModifier: Number(s.price_modifier),
     })),
+    addOns: row.product_addons.map((a) => ({ id: a.id, label: a.label, price: Number(a.price) })),
     prepTime: row.prep_time ?? "",
     isFeatured: row.is_featured,
   };

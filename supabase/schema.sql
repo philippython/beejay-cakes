@@ -69,6 +69,16 @@ create table if not exists product_flavours (
   name text not null
 );
 
+-- Add-ons are set per product, at the admin's discretion (not a fixed
+-- global list) — e.g. one cake might offer candles and a topper, another
+-- might offer nothing extra at all.
+create table if not exists product_addons (
+  id uuid primary key default gen_random_uuid(),
+  product_id uuid references products(id) on delete cascade,
+  label text not null,
+  price numeric not null default 0
+);
+
 create table if not exists orders (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users(id),
@@ -95,13 +105,21 @@ alter table orders drop column if exists stripe_session_id;
 create table if not exists order_items (
   id uuid primary key default gen_random_uuid(),
   order_id uuid references orders(id) on delete cascade,
-  product_id uuid references products(id),
+  product_id uuid references products(id) on delete set null,
   name text not null,
   size text,
   flavour text,
   unit_price numeric not null,
   quantity int not null
 );
+
+-- Safe to re-run: fixes the FK for databases created before this was
+-- "on delete set null" — without it, a product could never be deleted
+-- once it had been ordered even once (order rows already keep the name/
+-- price/etc. directly, so nothing is lost by detaching the reference).
+alter table order_items drop constraint if exists order_items_product_id_fkey;
+alter table order_items add constraint order_items_product_id_fkey
+  foreign key (product_id) references products(id) on delete set null;
 
 create table if not exists reviews (
   id uuid primary key default gen_random_uuid(),

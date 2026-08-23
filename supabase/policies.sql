@@ -11,6 +11,7 @@ alter table products enable row level security;
 alter table product_images enable row level security;
 alter table product_sizes enable row level security;
 alter table product_flavours enable row level security;
+alter table product_addons enable row level security;
 alter table orders enable row level security;
 alter table order_items enable row level security;
 alter table reviews enable row level security;
@@ -56,6 +57,11 @@ drop policy if exists "Anyone can read product flavours" on product_flavours;
 create policy "Anyone can read product flavours" on product_flavours for select using (true);
 drop policy if exists "Admins manage product flavours" on product_flavours;
 create policy "Admins manage product flavours" on product_flavours for all using (is_admin()) with check (is_admin());
+
+drop policy if exists "Anyone can read product addons" on product_addons;
+create policy "Anyone can read product addons" on product_addons for select using (true);
+drop policy if exists "Admins manage product addons" on product_addons;
+create policy "Admins manage product addons" on product_addons for all using (is_admin()) with check (is_admin());
 
 -- Orders: customers see and create their own; admins see and manage all.
 drop policy if exists "Users see own orders" on orders;

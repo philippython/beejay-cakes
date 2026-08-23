@@ -49,7 +49,7 @@ export default async function ProductPage({
       <div className="mx-auto max-w-6xl px-5 pt-4 sm:px-8 sm:pt-6 md:grid md:grid-cols-2 md:gap-12">
         {/* Gallery */}
         <div className="md:sticky md:top-24 md:self-start">
-          <Gallery images={product.images} />
+          <Gallery images={product.images} productName={product.name} />
         </div>
 
         {/* Details */}

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import {
   Cake,
   Sparkles,
@@ -30,15 +31,32 @@ function toneFor(tag?: string): Tone {
   return TONES[key ?? "birthday"];
 }
 
+/** `tag` is either a real photo URL (from Cloudinary, once a product has
+ *  images) or a decorative category keyword like "birthday" — used
+ *  before any real photos exist (Hero, category icons, admin category
+ *  rows, and products that haven't had photos added yet). This
+ *  component renders whichever one it's actually given. */
 export function ProductMedia({
   tag,
+  alt = "",
   className,
   iconClassName,
 }: {
   tag?: string;
+  alt?: string;
   className?: string;
   iconClassName?: string;
 }) {
+  const isPhoto = !!tag && /^https?:\/\//.test(tag);
+
+  if (isPhoto) {
+    return (
+      <div className={cn("relative overflow-hidden bg-cream-deep", className)}>
+        <Image src={tag} alt={alt} fill sizes="(max-width: 640px) 50vw, 300px" className="object-cover" />
+      </div>
+    );
+  }
+
   const { bg, fg, icon: Icon } = toneFor(tag);
   const patternId = `dots-${tag ?? "default"}`;
   return (

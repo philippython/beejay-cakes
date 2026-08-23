@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ProductMedia } from "../ui/ProductMedia";
 import { cn } from "@/lib/utils";
 
-export function Gallery({ images }: { images: string[] }) {
+export function Gallery({ images, productName = "" }: { images: string[]; productName?: string }) {
   const [index, setIndex] = useState(0);
   const slides = images.length ? images : ["birthday"];
 
@@ -32,7 +32,7 @@ export function Gallery({ images }: { images: string[] }) {
             }}
             className="absolute inset-0"
           >
-            <ProductMedia tag={slides[index]} className="h-full w-full" iconClassName="h-16 w-16" />
+            <ProductMedia tag={slides[index]} alt={productName} className="h-full w-full" iconClassName="h-16 w-16" />
           </motion.div>
         </AnimatePresence>
 

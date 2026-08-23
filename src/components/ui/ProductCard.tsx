@@ -58,7 +58,7 @@ export function ProductCard({
     >
       <Link href={`/product/${product.slug}`} className="block">
         <div className="relative aspect-[4/5] w-full">
-          <ProductMedia tag={product.images[0]} className="h-full w-full" iconClassName="h-12 w-12" />
+          <ProductMedia tag={product.images[0]} alt={product.name} className="h-full w-full" iconClassName="h-12 w-12" />
 
           <div className="absolute left-3 top-3 flex flex-col items-start gap-1.5">
             {product.badge && <Badge kind={product.badge}>{product.badge}</Badge>}

@@ -9,31 +9,30 @@ import { Button } from "../ui/Button";
 import { QuantityStepper } from "./QuantityStepper";
 import { useCartStore } from "@/store/cart";
 
-const ADD_ONS = [
-  { id: "candles", label: "Number candles", price: 2.5 },
-  { id: "card", label: "Personalised message card", price: 2 },
-  { id: "topper", label: "Gold cake topper", price: 6 },
-];
-
 export function ProductOptions({ product }: { product: Product }) {
   const [sizeId, setSizeId] = useState(product.sizes[0].id);
   const [flavour, setFlavour] = useState(product.flavours[0]);
   const [qty, setQty] = useState(1);
-  const [addOns, setAddOns] = useState<string[]>([]);
+  const [selectedAddOnIds, setSelectedAddOnIds] = useState<string[]>([]);
   const [added, setAdded] = useState(false);
   const addToCart = useCartStore((s) => s.add);
   const router = useRouter();
 
   const size = product.sizes.find((s) => s.id === sizeId)!;
-  const addOnTotal = ADD_ONS.filter((a) => addOns.includes(a.id)).reduce((s, a) => s + a.price, 0);
+  const addOnTotal = product.addOns
+    .filter((a) => selectedAddOnIds.includes(a.id))
+    .reduce((s, a) => s + a.price, 0);
   const unitPrice = product.price + size.priceModifier;
   const total = useMemo(() => (unitPrice + addOnTotal) * qty, [unitPrice, addOnTotal, qty]);
 
   function toggleAddOn(id: string) {
-    setAddOns((prev) => (prev.includes(id) ? prev.filter((a) => a !== id) : [...prev, id]));
+    setSelectedAddOnIds((prev) => (prev.includes(id) ? prev.filter((a) => a !== id) : [...prev, id]));
   }
 
   function buildCartItem() {
+    const addOnLabels = product.addOns
+      .filter((a) => selectedAddOnIds.includes(a.id))
+      .map((a) => a.label);
     return {
       productId: product.id,
       slug: product.slug,
@@ -41,7 +40,7 @@ export function ProductOptions({ product }: { product: Product }) {
       image: product.images[0],
       size: size.label,
       flavour,
-      addOns,
+      addOns: addOnLabels,
       unitPrice: unitPrice + addOnTotal,
       quantity: qty,
     };
@@ -107,37 +106,39 @@ export function ProductOptions({ product }: { product: Product }) {
         </div>
       </div>
 
-      {/* Add-ons */}
-      <div className="mt-6">
-        <p className="text-[13px] font-bold text-cocoa">Add-ons</p>
-        <div className="mt-2.5 space-y-2">
-          {ADD_ONS.map((a) => {
-            const checked = addOns.includes(a.id);
-            return (
-              <label
-                key={a.id}
-                className={cn(
-                  "flex cursor-pointer items-center justify-between rounded-2xl border px-4 py-3 transition-colors",
-                  checked ? "border-honey bg-honey/[0.06]" : "border-cocoa/10"
-                )}
-              >
-                <span className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={() => toggleAddOn(a.id)}
-                    className="h-[18px] w-[18px] accent-honey"
-                  />
-                  <span className="text-[13.5px] font-medium text-cocoa">{a.label}</span>
-                </span>
-                <span className="text-[13px] font-semibold text-cocoa-soft">
-                  +{formatPrice(a.price)}
-                </span>
-              </label>
-            );
-          })}
+      {/* Add-ons — only shown if the admin has configured any for this product */}
+      {product.addOns.length > 0 && (
+        <div className="mt-6">
+          <p className="text-[13px] font-bold text-cocoa">Add-ons</p>
+          <div className="mt-2.5 space-y-2">
+            {product.addOns.map((a) => {
+              const checked = selectedAddOnIds.includes(a.id);
+              return (
+                <label
+                  key={a.id}
+                  className={cn(
+                    "flex cursor-pointer items-center justify-between rounded-2xl border px-4 py-3 transition-colors",
+                    checked ? "border-honey bg-honey/[0.06]" : "border-cocoa/10"
+                  )}
+                >
+                  <span className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggleAddOn(a.id)}
+                      className="h-[18px] w-[18px] accent-honey"
+                    />
+                    <span className="text-[13.5px] font-medium text-cocoa">{a.label}</span>
+                  </span>
+                  <span className="text-[13px] font-semibold text-cocoa-soft">
+                    +{formatPrice(a.price)}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Quantity + delivery info */}
       <div className="mt-7 flex items-center justify-between">

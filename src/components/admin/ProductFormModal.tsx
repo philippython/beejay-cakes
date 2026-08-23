@@ -17,6 +17,7 @@ export type AdminProductFormValues = {
   stock: number;
   flavours: string; // comma-separated in the UI
   sizes: string; // "Label:modifier, Label:modifier" in the UI
+  addOns: string; // "Label:price, Label:price" in the UI
   images: string[];
   featured: boolean;
   enabled: boolean;
@@ -33,6 +34,17 @@ function parseSizes(raw: string): { label: string; priceModifier: number }[] {
     });
 }
 
+function parseAddOns(raw: string): { label: string; price: number }[] {
+  return raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .map((s) => {
+      const [label, price] = s.split(":").map((p) => p.trim());
+      return { label, price: Number(price) || 0 };
+    });
+}
+
 export function toProductInput(form: AdminProductFormValues): AdminProductInput {
   return {
     name: form.name,
@@ -42,6 +54,7 @@ export function toProductInput(form: AdminProductFormValues): AdminProductInput 
     stock: form.stock,
     flavours: form.flavours.split(",").map((f) => f.trim()).filter(Boolean),
     sizes: parseSizes(form.sizes),
+    addOns: parseAddOns(form.addOns),
     images: form.images,
     featured: form.featured,
     enabled: form.enabled,
@@ -69,6 +82,7 @@ export function ProductFormModal({
       stock: 10,
       flavours: "",
       sizes: "",
+      addOns: "",
       images: [],
       featured: false,
       enabled: true,
@@ -246,6 +260,18 @@ export function ProductFormModal({
             value={form.sizes}
             onChange={(e) => set("sizes", e.target.value)}
             placeholder='6" serves 8:0, 8" serves 16:14'
+            className="mt-1 w-full rounded-xl border border-cocoa/12 px-3.5 py-2.5 text-[13.5px] focus:border-honey focus:outline-none"
+          />
+        </div>
+
+        <div>
+          <label className="text-[12px] font-semibold text-cocoa-soft">
+            Add-ons — <span className="font-normal text-cocoa-faint">label:price, comma separated. Leave blank for none.</span>
+          </label>
+          <input
+            value={form.addOns}
+            onChange={(e) => set("addOns", e.target.value)}
+            placeholder="Number candles:1.50, Gold topper:2.50"
             className="mt-1 w-full rounded-xl border border-cocoa/12 px-3.5 py-2.5 text-[13.5px] focus:border-honey focus:outline-none"
           />
         </div>

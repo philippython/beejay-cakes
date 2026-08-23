@@ -40,8 +40,15 @@ export default function AdminCategoriesPage() {
   }
 
   async function remove(id: string) {
+    if (!confirm("Delete this category? This can't be undone.")) return;
+    const previous = items;
     setItems((prev) => prev.filter((c) => c.id !== id));
-    await deleteCategory(id);
+    try {
+      await deleteCategory(id);
+    } catch (err) {
+      setItems(previous);
+      alert(err instanceof Error ? `Couldn't delete: ${err.message}` : "Couldn't delete this category.");
+    }
   }
 
   function openAdd() {

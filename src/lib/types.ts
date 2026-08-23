@@ -12,6 +12,12 @@ export type ProductSize = {
   priceModifier: number;
 };
 
+export type ProductAddon = {
+  id: string;
+  label: string;
+  price: number;
+};
+
 export type Product = {
   id: string;
   slug: string;
@@ -26,6 +32,7 @@ export type Product = {
   description: string;
   flavours: string[];
   sizes: ProductSize[];
+  addOns: ProductAddon[];
   prepTime: string;
   isFeatured?: boolean;
 };
