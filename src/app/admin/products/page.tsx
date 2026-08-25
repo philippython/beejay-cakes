@@ -23,6 +23,7 @@ export default function AdminProductsPage() {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<{ id: string; values: AdminProductFormValues } | undefined>(undefined);
+  const [addInstance, setAddInstance] = useState(0);
 
   async function refresh() {
     const [cats, products] = await Promise.all([getCategories(supabase), getProducts(supabase)]);
@@ -37,6 +38,7 @@ export default function AdminProductsPage() {
 
   function openAdd() {
     setEditing(undefined);
+    setAddInstance((n) => n + 1);
     setModalOpen(true);
   }
 
@@ -49,10 +51,10 @@ export default function AdminProductsPage() {
         categoryId: category?.id ?? "",
         price: p.price,
         compareAtPrice: p.compareAtPrice,
-        stock: 0,
-        flavours: p.flavours.join(", "),
-        sizes: p.sizes.map((s) => `${s.label}:${s.priceModifier}`).join(", "),
-        addOns: p.addOns.map((a) => `${a.label}:${a.price}`).join(", "),
+        stock: p.stock,
+        flavours: p.flavours.map((name) => ({ key: crypto.randomUUID(), name })),
+        sizes: p.sizes.map((s) => ({ key: crypto.randomUUID(), label: s.label, priceModifier: s.priceModifier })),
+        addOns: p.addOns.map((a) => ({ key: crypto.randomUUID(), label: a.label, price: a.price })),
         images: p.images,
         featured: !!p.isFeatured,
         enabled: true,
@@ -174,6 +176,7 @@ export default function AdminProductsPage() {
       </div>
 
       <ProductFormModal
+        key={editing?.id ?? `new-${addInstance}`}
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         onSave={handleSave}

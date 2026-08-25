@@ -5,9 +5,14 @@ import { UploadCloud, X, Loader2 } from "lucide-react";
 import { Modal } from "../ui/Modal";
 import { Button } from "../ui/Button";
 import { Toggle } from "../ui/Toggle";
+import { RepeatingRows } from "./RepeatingRows";
 import { Category } from "@/lib/types";
 import { AdminProductInput } from "@/lib/data/admin-products";
 import { uploadImageToCloudinary, CloudinaryUploadError } from "@/lib/cloudinary";
+
+type SizeRow = { key: string; label: string; priceModifier: number };
+type FlavourRow = { key: string; name: string };
+type AddOnRow = { key: string; label: string; price: number };
 
 export type AdminProductFormValues = {
   name: string;
@@ -15,34 +20,16 @@ export type AdminProductFormValues = {
   price: number;
   compareAtPrice?: number;
   stock: number;
-  flavours: string; // comma-separated in the UI
-  sizes: string; // "Label:modifier, Label:modifier" in the UI
-  addOns: string; // "Label:price, Label:price" in the UI
+  flavours: FlavourRow[];
+  sizes: SizeRow[];
+  addOns: AddOnRow[];
   images: string[];
   featured: boolean;
   enabled: boolean;
 };
 
-function parseSizes(raw: string): { label: string; priceModifier: number }[] {
-  return raw
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean)
-    .map((s) => {
-      const [label, modifier] = s.split(":").map((p) => p.trim());
-      return { label, priceModifier: Number(modifier) || 0 };
-    });
-}
-
-function parseAddOns(raw: string): { label: string; price: number }[] {
-  return raw
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean)
-    .map((s) => {
-      const [label, price] = s.split(":").map((p) => p.trim());
-      return { label, price: Number(price) || 0 };
-    });
+function newKey() {
+  return crypto.randomUUID();
 }
 
 export function toProductInput(form: AdminProductFormValues): AdminProductInput {
@@ -52,9 +39,13 @@ export function toProductInput(form: AdminProductFormValues): AdminProductInput 
     price: form.price,
     compareAtPrice: form.compareAtPrice,
     stock: form.stock,
-    flavours: form.flavours.split(",").map((f) => f.trim()).filter(Boolean),
-    sizes: parseSizes(form.sizes),
-    addOns: parseAddOns(form.addOns),
+    flavours: form.flavours.map((f) => f.name.trim()).filter(Boolean),
+    sizes: form.sizes
+      .filter((s) => s.label.trim())
+      .map((s) => ({ label: s.label.trim(), priceModifier: s.priceModifier })),
+    addOns: form.addOns
+      .filter((a) => a.label.trim())
+      .map((a) => ({ label: a.label.trim(), price: a.price })),
     images: form.images,
     featured: form.featured,
     enabled: form.enabled,
@@ -74,15 +65,20 @@ export function ProductFormModal({
   categories: Category[];
   initial?: AdminProductFormValues;
 }) {
+  // NOTE: the parent renders this with key={editing?.id ?? "new"}, which
+  // remounts it fresh every time you switch what you're editing (or
+  // switch from Add to Edit) — that's what makes useState's initial
+  // value below actually apply each time, instead of "sticking" to
+  // whatever the very first product edited was.
   const [form, setForm] = useState<AdminProductFormValues>(
     initial ?? {
       name: "",
       categoryId: categories[0]?.id ?? "",
       price: 0,
       stock: 10,
-      flavours: "",
-      sizes: "",
-      addOns: "",
+      flavours: [],
+      sizes: [],
+      addOns: [],
       images: [],
       featured: false,
       enabled: true,
@@ -130,7 +126,7 @@ export function ProductFormModal({
             setSaving(false);
           }
         }}
-        className="space-y-4"
+        className="space-y-5"
       >
         <div>
           <label
@@ -252,39 +248,86 @@ export function ProductFormModal({
           </div>
         </div>
 
-        <div>
-          <label className="text-[12px] font-semibold text-cocoa-soft">
-            Sizes — <span className="font-normal text-cocoa-faint">label:extra price, comma separated</span>
-          </label>
-          <input
-            value={form.sizes}
-            onChange={(e) => set("sizes", e.target.value)}
-            placeholder='6" serves 8:0, 8" serves 16:14'
-            className="mt-1 w-full rounded-xl border border-cocoa/12 px-3.5 py-2.5 text-[13.5px] focus:border-honey focus:outline-none"
-          />
-        </div>
+        <RepeatingRows<SizeRow>
+          label="Sizes"
+          hint="leave empty if this product only comes in one size"
+          rows={form.sizes}
+          onChange={(rows) => set("sizes", rows)}
+          addLabel="Add a size"
+          makeRow={() => ({ key: newKey(), label: "", priceModifier: 0 })}
+          emptyHint="No sizes added — customers won't see a size picker on this product."
+          renderRow={(row, update) => (
+            <div className="flex gap-2">
+              <input
+                value={row.label}
+                onChange={(e) => update({ label: e.target.value })}
+                placeholder='e.g. 8" — serves 16'
+                className="flex-1 rounded-xl border border-cocoa/12 px-3.5 py-2.5 text-[13.5px] focus:border-honey focus:outline-none"
+              />
+              <div className="flex w-32 items-center gap-1.5 rounded-xl border border-cocoa/12 px-3 py-2.5">
+                <span className="shrink-0 text-[12px] text-cocoa-faint">+£</span>
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={row.priceModifier}
+                  onChange={(e) => update({ priceModifier: Number(e.target.value) })}
+                  placeholder="0"
+                  className="w-full bg-transparent text-[13.5px] focus:outline-none"
+                />
+              </div>
+            </div>
+          )}
+        />
 
-        <div>
-          <label className="text-[12px] font-semibold text-cocoa-soft">
-            Add-ons — <span className="font-normal text-cocoa-faint">label:price, comma separated. Leave blank for none.</span>
-          </label>
-          <input
-            value={form.addOns}
-            onChange={(e) => set("addOns", e.target.value)}
-            placeholder="Number candles:1.50, Gold topper:2.50"
-            className="mt-1 w-full rounded-xl border border-cocoa/12 px-3.5 py-2.5 text-[13.5px] focus:border-honey focus:outline-none"
-          />
-        </div>
+        <RepeatingRows<AddOnRow>
+          label="Add-ons"
+          hint="entirely up to you — leave empty for none on this product"
+          rows={form.addOns}
+          onChange={(rows) => set("addOns", rows)}
+          addLabel="Add an add-on"
+          makeRow={() => ({ key: newKey(), label: "", price: 0 })}
+          emptyHint="No add-ons — customers won't see an add-ons section on this product."
+          renderRow={(row, update) => (
+            <div className="flex gap-2">
+              <input
+                value={row.label}
+                onChange={(e) => update({ label: e.target.value })}
+                placeholder="e.g. Gold cake topper"
+                className="flex-1 rounded-xl border border-cocoa/12 px-3.5 py-2.5 text-[13.5px] focus:border-honey focus:outline-none"
+              />
+              <div className="flex w-32 items-center gap-1.5 rounded-xl border border-cocoa/12 px-3 py-2.5">
+                <span className="shrink-0 text-[12px] text-cocoa-faint">£</span>
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={row.price}
+                  onChange={(e) => update({ price: Number(e.target.value) })}
+                  placeholder="0"
+                  className="w-full bg-transparent text-[13.5px] focus:outline-none"
+                />
+              </div>
+            </div>
+          )}
+        />
 
-        <div>
-          <label className="text-[12px] font-semibold text-cocoa-soft">Flavours (comma separated)</label>
-          <input
-            value={form.flavours}
-            onChange={(e) => set("flavours", e.target.value)}
-            placeholder="Vanilla, Red Velvet, Chocolate"
-            className="mt-1 w-full rounded-xl border border-cocoa/12 px-3.5 py-2.5 text-[13.5px] focus:border-honey focus:outline-none"
-          />
-        </div>
+        <RepeatingRows<FlavourRow>
+          label="Flavours"
+          rows={form.flavours}
+          onChange={(rows) => set("flavours", rows)}
+          addLabel="Add a flavour"
+          makeRow={() => ({ key: newKey(), name: "" })}
+          emptyHint="No flavours added — customers won't see a flavour picker on this product."
+          renderRow={(row, update) => (
+            <input
+              value={row.name}
+              onChange={(e) => update({ name: e.target.value })}
+              placeholder="e.g. Vanilla Bean"
+              className="w-full rounded-xl border border-cocoa/12 px-3.5 py-2.5 text-[13.5px] focus:border-honey focus:outline-none"
+            />
+          )}
+        />
 
         <div className="flex items-center justify-between rounded-xl bg-cream/60 px-4 py-3">
           <span className="text-[13px] font-medium text-cocoa">Mark as featured</span>

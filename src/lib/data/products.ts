@@ -46,6 +46,7 @@ function mapProduct(row: DbProductRow, rating = 0, reviewCount = 0): Product {
     addOns: row.product_addons.map((a) => ({ id: a.id, label: a.label, price: Number(a.price) })),
     prepTime: row.prep_time ?? "",
     isFeatured: row.is_featured,
+    stock: row.stock,
   };
 }
 

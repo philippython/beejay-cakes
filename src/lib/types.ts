@@ -35,6 +35,7 @@ export type Product = {
   addOns: ProductAddon[];
   prepTime: string;
   isFeatured?: boolean;
+  stock: number;
 };
 
 export type OrderStatus =
