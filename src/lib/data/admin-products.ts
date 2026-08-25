@@ -102,3 +102,11 @@ export async function setProductField(id: string, field: "is_featured" | "is_act
   const { error } = await supabase.from("products").update(patch).eq("id", id);
   if (error) throw error;
 }
+
+/** Assigns one category to every product listed - used to fix a batch of
+ *  products that ended up with no category in one action, instead of
+ *  editing each one individually. */
+export async function bulkAssignCategory(productIds: string[], categoryId: string) {
+  const { error } = await supabase.from("products").update({ category_id: categoryId }).in("id", productIds);
+  if (error) throw error;
+}

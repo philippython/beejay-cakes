@@ -22,7 +22,7 @@ export function BottomNav() {
   return (
     <nav
       className="fixed inset-x-0 bottom-0 z-40 border-t border-line/70 bg-white/95 pb-[max(env(safe-area-inset-bottom),10px)] backdrop-blur-md md:hidden"
-      style={{ boxShadow: "0 -4px 20px rgba(59,36,21,0.06)" }}
+      style={{ boxShadow: "0 -4px 20px rgba(59,36,21,0.06)", transform: "translateZ(0)" }}
     >
       <ul className="mx-auto grid h-[68px] max-w-md grid-cols-5">
         {ITEMS.map((item) => {

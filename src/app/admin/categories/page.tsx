@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Plus, Pencil, Trash2, GripVertical, Tag } from "lucide-react";
+import { Plus, Pencil, Trash2, GripVertical, Tag, ChevronRight } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { getCategories } from "@/lib/data/products";
 import { createCategory, deleteCategory, reorderCategories, updateCategory } from "@/lib/data/admin-categories";
@@ -114,7 +115,13 @@ export default function AdminCategoriesPage() {
               </div>
               <div className="flex-1">
                 <p className="text-[13.5px] font-semibold text-cocoa">{c.name}</p>
-                <p className="text-[11.5px] text-cocoa-soft">{c.count} products</p>
+                <Link
+                  href={`/admin/products?category=${c.id}`}
+                  className="flex items-center gap-0.5 text-[11.5px] text-honey-deep hover:underline"
+                >
+                  {c.count} product{c.count !== 1 ? "s" : ""}
+                  <ChevronRight className="h-3 w-3" />
+                </Link>
               </div>
               <button
                 onClick={() => openEdit(c)}

@@ -197,11 +197,15 @@ export function ProductFormModal({
           <div>
             <label className="text-[12px] font-semibold text-cocoa-soft">Category</label>
             <select
+              required
               value={form.categoryId}
               onChange={(e) => set("categoryId", e.target.value)}
-              className="mt-1 w-full rounded-xl border border-cocoa/12 px-3.5 py-2.5 text-[13.5px] focus:border-honey focus:outline-none"
+              disabled={categories.length === 0}
+              className="mt-1 w-full rounded-xl border border-cocoa/12 px-3.5 py-2.5 text-[13.5px] focus:border-honey focus:outline-none disabled:opacity-50"
             >
-              {categories.length === 0 && <option value="">Add a category first</option>}
+              <option value="" disabled>
+                {categories.length === 0 ? "Add a category first" : "Choose a category"}
+              </option>
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
@@ -338,7 +342,13 @@ export function ProductFormModal({
           <Toggle checked={form.enabled} onChange={(v) => set("enabled", v)} />
         </div>
 
-        <Button type="submit" variant="primary" size="lg" className="w-full" disabled={saving || uploading}>
+        <Button
+          type="submit"
+          variant="primary"
+          size="lg"
+          className="w-full"
+          disabled={saving || uploading || !form.categoryId}
+        >
           {saving ? "Saving…" : initial ? "Save changes" : "Add product"}
         </Button>
       </form>

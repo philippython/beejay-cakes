@@ -157,7 +157,7 @@ export default function CheckoutPage() {
           </Button>
         </aside>
 
-        <div className="fixed inset-x-0 bottom-[var(--bottom-nav-h)] z-50 border-t border-line/70 bg-white/95 px-5 py-3 backdrop-blur-md md:hidden">
+        <div className="fixed inset-x-0 bottom-[var(--bottom-nav-h)] z-50 border-t border-line/70 bg-white/95 px-5 py-3 backdrop-blur-md md:hidden" style={{ transform: "translateZ(0)" }}>
           <Button
             type="submit"
             variant="primary"

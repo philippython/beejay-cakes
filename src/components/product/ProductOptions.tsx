@@ -175,7 +175,7 @@ export function ProductOptions({ product }: { product: Product }) {
       </div>
 
       {/* Mobile sticky bar */}
-      <div className="fixed inset-x-0 bottom-[var(--bottom-nav-h)] z-50 border-t border-line/70 bg-white/95 px-5 py-3 backdrop-blur-md sm:hidden">
+      <div className="fixed inset-x-0 bottom-[var(--bottom-nav-h)] z-50 border-t border-line/70 bg-white/95 px-5 py-3 backdrop-blur-md sm:hidden" style={{ transform: "translateZ(0)" }}>
         <div className="flex items-center gap-3">
           <div className="leading-tight">
             <p className="text-[11px] text-cocoa-faint">Total</p>

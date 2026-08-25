@@ -124,7 +124,7 @@ export default function CartPage() {
         Delivery cost isn&apos;t included yet — we&apos;ll confirm it with you after you order.
       </p>
 
-      <div className="fixed inset-x-0 bottom-[var(--bottom-nav-h)] z-50 border-t border-line/70 bg-white/95 px-5 py-3 backdrop-blur-md sm:static sm:mt-6 sm:border-none sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
+      <div className="fixed inset-x-0 bottom-[var(--bottom-nav-h)] z-50 border-t border-line/70 bg-white/95 px-5 py-3 backdrop-blur-md sm:static sm:mt-6 sm:border-none sm:bg-transparent sm:p-0 sm:backdrop-blur-none" style={{ transform: "translateZ(0)" }}>
         <Link href="/checkout">
           <Button variant="primary" size="lg" className="w-full justify-between px-6">
             Checkout · {formatPrice(total)}
