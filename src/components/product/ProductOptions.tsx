@@ -10,15 +10,18 @@ import { QuantityStepper } from "./QuantityStepper";
 import { useCartStore } from "@/store/cart";
 
 export function ProductOptions({ product }: { product: Product }) {
-  const [sizeId, setSizeId] = useState(product.sizes[0].id);
-  const [flavour, setFlavour] = useState(product.flavours[0]);
+  const hasSizes = product.sizes.length > 0;
+  const hasFlavours = product.flavours.length > 0;
+
+  const [sizeId, setSizeId] = useState(product.sizes[0]?.id ?? "");
+  const [flavour, setFlavour] = useState(product.flavours[0] ?? "");
   const [qty, setQty] = useState(1);
   const [selectedAddOnIds, setSelectedAddOnIds] = useState<string[]>([]);
   const [added, setAdded] = useState(false);
   const addToCart = useCartStore((s) => s.add);
   const router = useRouter();
 
-  const size = product.sizes.find((s) => s.id === sizeId)!;
+  const size = product.sizes.find((s) => s.id === sizeId) ?? { id: "", label: "", priceModifier: 0 };
   const addOnTotal = product.addOns
     .filter((a) => selectedAddOnIds.includes(a.id))
     .reduce((s, a) => s + a.price, 0);
@@ -59,52 +62,56 @@ export function ProductOptions({ product }: { product: Product }) {
 
   return (
     <div>
-      {/* Sizes */}
-      <div className="mt-1">
-        <p className="text-[13px] font-bold text-cocoa">Size</p>
-        <div className="mt-2.5 flex flex-wrap gap-2">
-          {product.sizes.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => setSizeId(s.id)}
-              className={cn(
-                "rounded-2xl border px-4 py-2.5 text-left text-[13px] font-medium transition-colors",
-                s.id === sizeId
-                  ? "border-cocoa bg-cocoa text-cream"
-                  : "border-cocoa/12 text-cocoa-soft hover:border-cocoa/30"
-              )}
-            >
-              {s.label}
-              {s.priceModifier > 0 && (
-                <span className={cn("ml-1.5", s.id === sizeId ? "text-cream/70" : "text-cocoa-faint")}>
-                  +{formatPrice(s.priceModifier)}
-                </span>
-              )}
-            </button>
-          ))}
+      {/* Sizes — only shown if the admin has configured any for this product */}
+      {hasSizes && (
+        <div className="mt-1">
+          <p className="text-[13px] font-bold text-cocoa">Size</p>
+          <div className="mt-2.5 flex flex-wrap gap-2">
+            {product.sizes.map((s) => (
+              <button
+                key={s.id}
+                onClick={() => setSizeId(s.id)}
+                className={cn(
+                  "rounded-2xl border px-4 py-2.5 text-left text-[13px] font-medium transition-colors",
+                  s.id === sizeId
+                    ? "border-cocoa bg-cocoa text-cream"
+                    : "border-cocoa/12 text-cocoa-soft hover:border-cocoa/30"
+                )}
+              >
+                {s.label}
+                {s.priceModifier > 0 && (
+                  <span className={cn("ml-1.5", s.id === sizeId ? "text-cream/70" : "text-cocoa-faint")}>
+                    +{formatPrice(s.priceModifier)}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Flavours */}
-      <div className="mt-6">
-        <p className="text-[13px] font-bold text-cocoa">Flavour</p>
-        <div className="mt-2.5 flex flex-wrap gap-2">
-          {product.flavours.map((f) => (
-            <button
-              key={f}
-              onClick={() => setFlavour(f)}
-              className={cn(
-                "rounded-full border px-4 py-2 text-[13px] font-medium transition-colors",
-                f === flavour
-                  ? "border-honey bg-honey/10 text-honey-deep"
-                  : "border-cocoa/12 text-cocoa-soft hover:border-cocoa/30"
-              )}
-            >
-              {f}
-            </button>
-          ))}
+      {/* Flavours — only shown if the admin has configured any for this product */}
+      {hasFlavours && (
+        <div className="mt-6">
+          <p className="text-[13px] font-bold text-cocoa">Flavour</p>
+          <div className="mt-2.5 flex flex-wrap gap-2">
+            {product.flavours.map((f) => (
+              <button
+                key={f}
+                onClick={() => setFlavour(f)}
+                className={cn(
+                  "rounded-full border px-4 py-2 text-[13px] font-medium transition-colors",
+                  f === flavour
+                    ? "border-honey bg-honey/10 text-honey-deep"
+                    : "border-cocoa/12 text-cocoa-soft hover:border-cocoa/30"
+                )}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Add-ons — only shown if the admin has configured any for this product */}
       {product.addOns.length > 0 && (

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Phone } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
+import type { Category } from "@/lib/types";
 
 function InstagramGlyph(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -35,16 +36,6 @@ const SOCIALS = [
 
 const COLUMNS = [
   {
-    title: "Shop",
-    links: [
-      { label: "Birthday Cakes", href: "/category/birthday-cakes" },
-      { label: "Wedding Cakes", href: "/category/wedding-cakes" },
-      { label: "Cupcakes", href: "/category/cupcakes" },
-      { label: "Small Chops", href: "/category/small-chops" },
-      { label: "Treat Boxes", href: "/category/treat-boxes" },
-    ],
-  },
-  {
     title: "Company",
     links: [
       { label: "Our Story", href: "/about" },
@@ -62,7 +53,7 @@ const COLUMNS = [
   },
 ];
 
-export function Footer() {
+export function Footer({ categories }: { categories: Category[] }) {
   return (
     <footer className="mt-16 mb-20 border-t border-line/70 bg-cream pt-14 md:mb-0">
       <div className="mx-auto max-w-7xl px-5 sm:px-8">
@@ -93,6 +84,24 @@ export function Footer() {
               ))}
             </div>
           </div>
+
+          {categories.length > 0 && (
+            <div>
+              <p className="text-[12px] font-bold uppercase tracking-wide text-cocoa-faint">Shop</p>
+              <ul className="mt-3 space-y-2.5">
+                {categories.map((cat) => (
+                  <li key={cat.id}>
+                    <Link
+                      href={`/category/${cat.slug}`}
+                      className="text-[13.5px] text-cocoa-soft transition-colors hover:text-cocoa"
+                    >
+                      {cat.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {COLUMNS.map((col) => (
             <div key={col.title}>

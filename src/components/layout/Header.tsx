@@ -5,17 +5,9 @@ import { Heart, ShoppingBag, Truck } from "lucide-react";
 import { useCartStore, cartCount } from "@/store/cart";
 import { Logo } from "@/components/ui/Logo";
 import { AccountMenu } from "@/components/layout/AccountMenu";
+import type { Category } from "@/lib/types";
 
-const NAV_LINKS = [
-  { label: "Birthday Cakes", href: "/category/birthday-cakes" },
-  { label: "Wedding Cakes", href: "/category/wedding-cakes" },
-  { label: "Cupcakes", href: "/category/cupcakes" },
-  { label: "Pastries", href: "/category/pastries" },
-  { label: "Small Chops", href: "/category/small-chops" },
-  { label: "Treat Boxes", href: "/category/treat-boxes" },
-];
-
-export function Header() {
+export function Header({ categories }: { categories: Category[] }) {
   const items = useCartStore((s) => s.items);
   const count = cartCount(items);
 
@@ -28,13 +20,13 @@ export function Header() {
           </Link>
 
           <nav className="flex items-center gap-7">
-            {NAV_LINKS.map((link) => (
+            {categories.map((cat) => (
               <Link
-                key={link.href}
-                href={link.href}
+                key={cat.id}
+                href={`/category/${cat.slug}`}
                 className="text-[14px] font-medium text-cocoa-soft transition-colors hover:text-cocoa"
               >
-                {link.label}
+                {cat.name}
               </Link>
             ))}
           </nav>
