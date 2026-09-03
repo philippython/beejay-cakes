@@ -85,9 +85,11 @@ export function ProductCard({
             {product.name}
           </h3>
 
-          <div className="mt-1.5">
-            <RatingStars rating={product.rating} reviewCount={product.reviewCount} size={12} />
-          </div>
+          {product.reviewCount > 0 && (
+            <div className="mt-1.5">
+              <RatingStars rating={product.rating} reviewCount={product.reviewCount} size={12} />
+            </div>
+          )}
 
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-[15px] font-bold tabular-nums text-cocoa">

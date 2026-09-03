@@ -50,13 +50,16 @@ export default async function AdminDashboard() {
           <p className="text-[13px] font-bold text-cocoa">Recent orders</p>
           <div className="mt-4 space-y-3">
             {orders.slice(0, 8).map((o) => (
-              <div key={o.id} className="flex items-center justify-between">
-                <div>
+              <div key={o.id} className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
                   <p className="text-[12.5px] font-semibold text-cocoa">#{o.id.slice(0, 8).toUpperCase()}</p>
                   <p className="text-[11px] text-cocoa-soft">{o.date}</p>
+                  <p className="mt-0.5 truncate text-[11px] text-cocoa-faint">
+                    {o.customerEmail ?? "No email"} · {o.customerPhone || "No phone"}
+                  </p>
                 </div>
                 <Badge kind={o.status === "Delivered" ? "success" : "Best Seller"}>{o.status}</Badge>
-                <p className="w-20 text-right text-[12.5px] font-semibold tabular-nums text-cocoa">
+                <p className="w-20 shrink-0 text-right text-[12.5px] font-semibold tabular-nums text-cocoa">
                   {formatPrice(o.total)}
                 </p>
               </div>

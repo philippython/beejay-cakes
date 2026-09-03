@@ -82,7 +82,16 @@ create policy "Admins manage order items" on order_items for all using (is_admin
 drop policy if exists "Anyone reads approved reviews" on reviews;
 create policy "Anyone reads approved reviews" on reviews for select using (is_approved or auth.uid() = user_id or is_admin());
 drop policy if exists "Users create own reviews" on reviews;
-create policy "Users create own reviews" on reviews for insert with check (auth.uid() = user_id);
+create policy "Users create own reviews" on reviews for insert with check (
+  auth.uid() = user_id
+  and exists (
+    select 1 from order_items
+    join orders on orders.id = order_items.order_id
+    where orders.user_id = auth.uid()
+      and orders.payment_confirmed = true
+      and order_items.product_id = reviews.product_id
+  )
+);
 drop policy if exists "Admins moderate reviews" on reviews;
 create policy "Admins moderate reviews" on reviews for update using (is_admin());
 drop policy if exists "Admins delete reviews" on reviews;

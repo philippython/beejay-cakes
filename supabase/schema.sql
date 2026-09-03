@@ -130,8 +130,20 @@ create table if not exists reviews (
   comment text not null,
   photo_url text,
   is_approved boolean not null default false,
-  created_at timestamptz default now()
+  created_at timestamptz default now(),
+  unique (product_id, user_id)
 );
+
+-- Safe to re-run: adds the constraint if this table was created before
+-- it existed here (one review per customer per product).
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'reviews_product_id_user_id_key'
+  ) then
+    alter table reviews add constraint reviews_product_id_user_id_key unique (product_id, user_id);
+  end if;
+end $$;
 
 create table if not exists addresses (
   id uuid primary key default gen_random_uuid(),

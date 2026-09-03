@@ -2,7 +2,13 @@ import { notFound } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { getProductBySlug, getProductReviews, getProductsByCategorySlug } from "@/lib/data/products";
+import {
+  getProductBySlug,
+  getProductReviews,
+  getProductsByCategorySlug,
+  getEligibleOrderForReview,
+  getUserReviewForProduct,
+} from "@/lib/data/products";
 import { formatPrice } from "@/lib/utils";
 import { Gallery } from "@/components/product/Gallery";
 import { ProductOptions } from "@/components/product/ProductOptions";
@@ -25,9 +31,15 @@ export default async function ProductPage({
   if (!product) notFound();
 
   const categorySlug = product.category.toLowerCase().replace(/\s+/g, "-");
-  const [reviews, categoryProducts] = await Promise.all([
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const [reviews, categoryProducts, eligibleOrderId, existingReview] = await Promise.all([
     getProductReviews(supabase, product.id),
     getProductsByCategorySlug(supabase, categorySlug),
+    user ? getEligibleOrderForReview(supabase, user.id, product.id) : Promise.resolve(null),
+    user ? getUserReviewForProduct(supabase, user.id, product.id) : Promise.resolve(null),
   ]);
 
   const similar = categoryProducts.filter((p) => p.id !== product.id);
@@ -90,7 +102,13 @@ export default async function ProductPage({
       </div>
 
       <div className="mx-auto mt-14 max-w-6xl space-y-14 px-5 sm:px-8">
-        <Reviews reviews={reviews} />
+        <Reviews
+          reviews={reviews}
+          productId={product.id}
+          userId={user?.id ?? null}
+          eligibleOrderId={eligibleOrderId}
+          existingReview={existingReview}
+        />
         <SimilarProducts products={similar} />
       </div>
     </div>

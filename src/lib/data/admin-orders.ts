@@ -12,14 +12,25 @@ const STATUS_LABELS: Record<OrderStatusDb, Order["status"]> = {
   cancelled: "Cancelled",
 };
 
-export type AdminOrder = Order & { paymentConfirmed: boolean; customerEmail: string | null };
+export type AdminOrder = Order & {
+  paymentConfirmed: boolean;
+  customerEmail: string | null;
+  customerPhone: string;
+  deliveryAddress: string;
+};
 
 export async function getAllOrdersAdmin(client: SupabaseClient<Database>): Promise<AdminOrder[]> {
   const { data, error } = await client
     .from("orders")
-    .select("id, status, total, created_at, payment_confirmed, customer_email, order_items ( name, quantity )")
+    .select(
+      "id, status, total, created_at, payment_confirmed, customer_email, phone, delivery_address, order_items ( name, quantity )"
+    )
     .order("created_at", { ascending: false });
 
+  if (error) {
+    // eslint-disable-next-line no-console
+    console.error("Supabase query failed (getAllOrdersAdmin):", error.message);
+  }
   if (error || !data) return [];
 
   return (data as unknown as {
@@ -29,6 +40,8 @@ export async function getAllOrdersAdmin(client: SupabaseClient<Database>): Promi
     created_at: string;
     payment_confirmed: boolean;
     customer_email: string | null;
+    phone: string;
+    delivery_address: string;
     order_items: { name: string; quantity: number }[];
   }[]).map((o) => ({
     id: o.id,
@@ -38,5 +51,7 @@ export async function getAllOrdersAdmin(client: SupabaseClient<Database>): Promi
     total: Number(o.total),
     paymentConfirmed: o.payment_confirmed,
     customerEmail: o.customer_email,
+    customerPhone: o.phone,
+    deliveryAddress: o.delivery_address,
   }));
 }

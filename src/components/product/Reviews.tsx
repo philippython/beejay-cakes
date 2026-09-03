@@ -1,8 +1,23 @@
-import { MessageSquareText } from "lucide-react";
+import { MessageSquareText, CheckCircle2, Clock } from "lucide-react";
 import { RatingStars } from "../ui/RatingStars";
+import { WriteReview } from "./WriteReview";
 import type { ProductReview } from "@/lib/data/products";
 
-export function Reviews({ reviews }: { reviews: ProductReview[] }) {
+type ExistingReview = { id: string; rating: number; comment: string; is_approved: boolean } | null;
+
+export function Reviews({
+  reviews,
+  productId,
+  userId,
+  eligibleOrderId,
+  existingReview,
+}: {
+  reviews: ProductReview[];
+  productId: string;
+  userId: string | null;
+  eligibleOrderId: string | null;
+  existingReview: ExistingReview;
+}) {
   const reviewCount = reviews.length;
   const rating = reviewCount
     ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviewCount
@@ -12,6 +27,33 @@ export function Reviews({ reviews }: { reviews: ProductReview[] }) {
     const count = reviews.filter((r) => r.rating === stars).length;
     return { stars, pct: reviewCount ? Math.round((count / reviewCount) * 100) : 0 };
   });
+
+  function renderWriteReviewArea() {
+    if (!userId) return null;
+
+    if (existingReview) {
+      return (
+        <div className="mt-6 flex items-center gap-3 rounded-2xl border border-line/70 p-4">
+          {existingReview.is_approved ? (
+            <CheckCircle2 className="h-5 w-5 shrink-0 text-success" />
+          ) : (
+            <Clock className="h-5 w-5 shrink-0 text-honey-deep" />
+          )}
+          <p className="text-[13.5px] text-cocoa">
+            {existingReview.is_approved
+              ? "You've already reviewed this product — thanks!"
+              : "You've submitted a review for this product — it's awaiting approval."}
+          </p>
+        </div>
+      );
+    }
+
+    if (eligibleOrderId) {
+      return <WriteReview productId={productId} orderId={eligibleOrderId} userId={userId} />;
+    }
+
+    return null;
+  }
 
   return (
     <div>
@@ -65,6 +107,8 @@ export function Reviews({ reviews }: { reviews: ProductReview[] }) {
           </div>
         </>
       )}
+
+      {renderWriteReviewArea()}
     </div>
   );
 }

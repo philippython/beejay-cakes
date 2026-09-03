@@ -10,14 +10,15 @@ type DbProductRow = Database["public"]["Tables"]["products"]["Row"] & {
   product_addons: { id: string; label: string; price: number }[];
 };
 
-const PRODUCT_SELECT = `
+const PRODUCT_FIELDS = `
   *,
-  categories ( name ),
   product_images ( url, sort_order ),
   product_sizes ( id, label, price_modifier ),
   product_flavours ( name ),
   product_addons ( id, label, price )
 `;
+
+const PRODUCT_SELECT = `${PRODUCT_FIELDS}, categories ( name )`;
 
 // Rating/review count aren't stored as columns — they're derived from the
 // reviews table. Until a product has real reviews this is always 0, which
@@ -58,6 +59,10 @@ export async function getProducts(client: SupabaseClient<Database>): Promise<Pro
     .eq("is_active", true)
     .order("created_at", { ascending: false });
 
+  if (error) {
+    // eslint-disable-next-line no-console
+    console.error("Supabase query failed:", error.message, error.details ?? "");
+  }
   if (error || !data) return [];
   return (data as unknown as DbProductRow[]).map((r) => mapProduct(r));
 }
@@ -69,6 +74,10 @@ export async function getFeaturedProducts(client: SupabaseClient<Database>): Pro
     .eq("is_active", true)
     .eq("is_featured", true);
 
+  if (error) {
+    // eslint-disable-next-line no-console
+    console.error("Supabase query failed:", error.message, error.details ?? "");
+  }
   if (error || !data) return [];
   return (data as unknown as DbProductRow[]).map((r) => mapProduct(r));
 }
@@ -94,10 +103,14 @@ export async function getProductsByCategorySlug(
 ): Promise<Product[]> {
   const { data, error } = await client
     .from("products")
-    .select(`${PRODUCT_SELECT}, categories!inner(name, slug)`)
+    .select(`${PRODUCT_FIELDS}, categories!inner ( name, slug )`)
     .eq("is_active", true)
     .eq("categories.slug", categorySlug);
 
+  if (error) {
+    // eslint-disable-next-line no-console
+    console.error("Supabase query failed:", error.message, error.details ?? "");
+  }
   if (error || !data) return [];
   return (data as unknown as DbProductRow[]).map((r) => mapProduct(r));
 }
@@ -114,6 +127,10 @@ export async function searchProducts(
     .eq("is_active", true)
     .or(`name.ilike.%${query}%,description.ilike.%${query}%`);
 
+  if (error) {
+    // eslint-disable-next-line no-console
+    console.error("Supabase query failed:", error.message, error.details ?? "");
+  }
   if (error || !data) return [];
   return (data as unknown as DbProductRow[]).map((r) => mapProduct(r));
 }
@@ -138,6 +155,10 @@ export async function getProductReviews(
     .eq("is_approved", true)
     .order("created_at", { ascending: false });
 
+  if (error) {
+    // eslint-disable-next-line no-console
+    console.error("Supabase query failed:", error.message, error.details ?? "");
+  }
   if (error || !data) return [];
 
   return (data as unknown as {
@@ -163,6 +184,10 @@ export async function getWishlist(client: SupabaseClient<Database>, userId: stri
     .select(`products ( ${PRODUCT_SELECT} )`)
     .eq("user_id", userId);
 
+  if (error) {
+    // eslint-disable-next-line no-console
+    console.error("Supabase query failed:", error.message, error.details ?? "");
+  }
   if (error || !data) return [];
 
   return (data as unknown as { products: DbProductRow }[])
@@ -243,4 +268,55 @@ export async function getCategories(client: SupabaseClient<Database>): Promise<C
     image: c.slug,
     count: countMap.get(c.id) ?? 0,
   }));
+}
+
+/** Finds the customer's most recent paid order that included this
+ *  product — used both to gate the "write a review" form (eligibility)
+ *  and to attach the review to a real order. Mirrors what the
+ *  "Users create own reviews" RLS policy checks server-side, so the UI
+ *  and the actual enforcement never disagree. */
+export async function getEligibleOrderForReview(
+  client: SupabaseClient<Database>,
+  userId: string,
+  productId: string
+): Promise<string | null> {
+  const { data, error } = await client
+    .from("order_items")
+    .select("order_id, orders!inner ( id, user_id, payment_confirmed, created_at )")
+    .eq("product_id", productId)
+    .eq("orders.user_id", userId)
+    .eq("orders.payment_confirmed", true)
+    .order("orders(created_at)", { ascending: false })
+    .limit(1);
+
+  if (error || !data?.length) return null;
+  return (data[0] as unknown as { order_id: string }).order_id;
+}
+
+export async function getUserReviewForProduct(
+  client: SupabaseClient<Database>,
+  userId: string,
+  productId: string
+) {
+  const { data } = await client
+    .from("reviews")
+    .select("id, rating, comment, is_approved")
+    .eq("user_id", userId)
+    .eq("product_id", productId)
+    .maybeSingle();
+  return data;
+}
+
+export async function submitReview(
+  client: SupabaseClient<Database>,
+  input: { productId: string; orderId: string; userId: string; rating: number; comment: string }
+) {
+  const { error } = await client.from("reviews").insert({
+    product_id: input.productId,
+    order_id: input.orderId,
+    user_id: input.userId,
+    rating: input.rating,
+    comment: input.comment,
+  });
+  if (error) throw error;
 }

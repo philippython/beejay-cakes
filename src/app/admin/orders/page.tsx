@@ -95,10 +95,11 @@ export default function AdminOrdersPage() {
       ) : (
         <div className="mt-6 overflow-hidden rounded-2xl bg-surface shadow-[var(--shadow-soft)]">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[880px] text-left">
+            <table className="w-full min-w-[980px] text-left">
               <thead>
                 <tr className="border-b border-line/70 text-[11.5px] font-bold uppercase tracking-wide text-cocoa-faint">
                   <th className="px-5 py-3">Order</th>
+                  <th className="px-5 py-3">Customer</th>
                   <th className="px-5 py-3">Items</th>
                   <th className="px-5 py-3">Total</th>
                   <th className="px-5 py-3">Payment</th>
@@ -112,6 +113,10 @@ export default function AdminOrdersPage() {
                     <td className="px-5 py-3">
                       <p className="text-[13px] font-semibold text-cocoa">#{o.id.slice(0, 8).toUpperCase()}</p>
                       <p className="text-[11.5px] text-cocoa-soft">{o.date}</p>
+                    </td>
+                    <td className="px-5 py-3">
+                      <p className="text-[12.5px] text-cocoa">{o.customerEmail ?? "—"}</p>
+                      <p className="text-[11.5px] text-cocoa-soft">{o.customerPhone || "—"}</p>
                     </td>
                     <td className="max-w-[220px] truncate px-5 py-3 text-[12.5px] text-cocoa-soft">
                       {o.items.map((i) => i.name).join(", ")}
