@@ -119,11 +119,17 @@ export default async function OrdersPage() {
             <p className="mt-0.5 text-[12px] text-cocoa-soft">{o.date}</p>
 
             <div className="mt-3 flex items-center gap-2">
-              {o.items.slice(0, 3).map((item, i) => (
-                <div key={i} className="h-11 w-11 overflow-hidden rounded-lg">
-                  <ProductMedia tag={item.image} className="h-full w-full" iconClassName="h-4 w-4" />
-                </div>
-              ))}
+              {o.items.slice(0, 3).map((item, i) =>
+                item.productSlug ? (
+                  <Link key={i} href={`/product/${item.productSlug}`} className="h-11 w-11 overflow-hidden rounded-lg">
+                    <ProductMedia tag={item.image} alt={item.name} className="h-full w-full" iconClassName="h-4 w-4" />
+                  </Link>
+                ) : (
+                  <div key={i} className="h-11 w-11 overflow-hidden rounded-lg">
+                    <ProductMedia tag={item.image} alt={item.name} className="h-full w-full" iconClassName="h-4 w-4" />
+                  </div>
+                )
+              )}
               <p className="ml-1 flex-1 truncate text-[12.5px] text-cocoa-soft">
                 {o.items.map((i) => i.name).join(", ")}
               </p>
@@ -131,6 +137,14 @@ export default async function OrdersPage() {
 
             <div className="mt-3 flex items-center justify-between border-t border-line/70 pt-3">
               <p className="text-[13px] font-bold tabular-nums text-cocoa">{formatPrice(o.total)}</p>
+              {o.status === "Delivered" && o.items.some((i) => i.productSlug) && (
+                <Link
+                  href={`/product/${o.items.find((i) => i.productSlug)!.productSlug}`}
+                  className="text-[12.5px] font-semibold text-honey-deep hover:underline"
+                >
+                  Leave a review
+                </Link>
+              )}
             </div>
           </div>
         ))}

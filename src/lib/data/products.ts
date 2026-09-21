@@ -51,6 +51,37 @@ function mapProduct(row: DbProductRow, rating = 0, reviewCount = 0): Product {
   };
 }
 
+/** Attaches real rating/reviewCount to products, computed from approved
+ *  reviews. `mapProduct` alone always leaves these at 0 since ratings
+ *  aren't stored on the product row — this is what makes them show up
+ *  on listing cards (home, category, search) once reviews are approved. */
+async function withRatings(client: SupabaseClient<Database>, products: Product[]): Promise<Product[]> {
+  if (products.length === 0) return products;
+
+  const { data } = await client
+    .from("reviews")
+    .select("product_id, rating")
+    .eq("is_approved", true)
+    .in("product_id", products.map((p) => p.id));
+
+  const byProduct = new Map<string, number[]>();
+  (data ?? []).forEach((r) => {
+    const list = byProduct.get(r.product_id) ?? [];
+    list.push(r.rating);
+    byProduct.set(r.product_id, list);
+  });
+
+  return products.map((p) => {
+    const ratings = byProduct.get(p.id);
+    if (!ratings?.length) return p;
+    return {
+      ...p,
+      rating: ratings.reduce((sum, n) => sum + n, 0) / ratings.length,
+      reviewCount: ratings.length,
+    };
+  });
+}
+
 /** All active products (storefront). */
 export async function getProducts(client: SupabaseClient<Database>): Promise<Product[]> {
   const { data, error } = await client
@@ -64,7 +95,7 @@ export async function getProducts(client: SupabaseClient<Database>): Promise<Pro
     console.error("Supabase query failed:", error.message, error.details ?? "");
   }
   if (error || !data) return [];
-  return (data as unknown as DbProductRow[]).map((r) => mapProduct(r));
+  return withRatings(client, (data as unknown as DbProductRow[]).map((r) => mapProduct(r)));
 }
 
 export async function getFeaturedProducts(client: SupabaseClient<Database>): Promise<Product[]> {
@@ -79,7 +110,7 @@ export async function getFeaturedProducts(client: SupabaseClient<Database>): Pro
     console.error("Supabase query failed:", error.message, error.details ?? "");
   }
   if (error || !data) return [];
-  return (data as unknown as DbProductRow[]).map((r) => mapProduct(r));
+  return withRatings(client, (data as unknown as DbProductRow[]).map((r) => mapProduct(r)));
 }
 
 export async function getProductBySlug(
@@ -94,7 +125,8 @@ export async function getProductBySlug(
     .maybeSingle();
 
   if (error || !data) return null;
-  return mapProduct(data as unknown as DbProductRow);
+  const [product] = await withRatings(client, [mapProduct(data as unknown as DbProductRow)]);
+  return product;
 }
 
 export async function getProductsByCategorySlug(
@@ -112,7 +144,7 @@ export async function getProductsByCategorySlug(
     console.error("Supabase query failed:", error.message, error.details ?? "");
   }
   if (error || !data) return [];
-  return (data as unknown as DbProductRow[]).map((r) => mapProduct(r));
+  return withRatings(client, (data as unknown as DbProductRow[]).map((r) => mapProduct(r)));
 }
 
 export async function searchProducts(
@@ -132,7 +164,7 @@ export async function searchProducts(
     console.error("Supabase query failed:", error.message, error.details ?? "");
   }
   if (error || !data) return [];
-  return (data as unknown as DbProductRow[]).map((r) => mapProduct(r));
+  return withRatings(client, (data as unknown as DbProductRow[]).map((r) => mapProduct(r)));
 }
 
 export type ProductReview = {

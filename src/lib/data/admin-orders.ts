@@ -47,7 +47,7 @@ export async function getAllOrdersAdmin(client: SupabaseClient<Database>): Promi
     id: o.id,
     date: new Date(o.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }),
     status: STATUS_LABELS[o.status],
-    items: o.order_items.map((i) => ({ name: i.name, quantity: i.quantity, image: "birthday" })),
+    items: o.order_items.map((i) => ({ name: i.name, quantity: i.quantity, image: "birthday", productSlug: null })),
     total: Number(o.total),
     paymentConfirmed: o.payment_confirmed,
     customerEmail: o.customer_email,

@@ -51,7 +51,7 @@ export type Order = {
   id: string;
   date: string;
   status: OrderStatus;
-  items: { name: string; quantity: number; image: string }[];
+  items: { name: string; quantity: number; image: string; productSlug: string | null }[];
   total: number;
 };
 
