@@ -13,18 +13,18 @@ export function Header({ categories }: { categories: Category[] }) {
 
   return (
     <header className="sticky top-0 z-40 hidden border-b border-line/70 bg-cream/85 backdrop-blur-md md:block">
-      <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between px-8">
-        <div className="flex items-center gap-10">
-          <Link href="/">
+      <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between gap-6 px-8">
+        <div className="flex min-w-0 items-center gap-10">
+          <Link href="/" className="shrink-0">
             <Logo size="md" />
           </Link>
 
-          <nav className="flex items-center gap-7">
+          <nav className="no-scrollbar flex min-w-0 items-center gap-7 overflow-x-auto">
             {categories.map((cat) => (
               <Link
                 key={cat.id}
                 href={`/category/${cat.slug}`}
-                className="text-[14px] font-medium text-cocoa-soft transition-colors hover:text-cocoa"
+                className="shrink-0 text-[14px] font-medium text-cocoa-soft transition-colors hover:text-cocoa"
               >
                 {cat.name}
               </Link>
@@ -32,7 +32,7 @@ export function Header({ categories }: { categories: Category[] }) {
           </nav>
         </div>
 
-        <div className="flex items-center gap-5">
+        <div className="flex shrink-0 items-center gap-5">
           <span className="flex items-center gap-1.5 rounded-full border border-cocoa/10 px-3.5 py-2 text-[13px] font-medium text-cocoa-soft">
             <Truck className="h-3.5 w-3.5" />
             Delivering across the UK

@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
+import { getProfileNames } from "@/lib/data/products";
 
 export type AdminReview = {
   id: string;
@@ -14,7 +15,7 @@ export type AdminReview = {
 export async function getAllReviewsAdmin(client: SupabaseClient<Database>): Promise<AdminReview[]> {
   const { data, error } = await client
     .from("reviews")
-    .select("id, rating, comment, is_approved, created_at, products ( name ), profiles ( full_name )")
+    .select("id, rating, comment, is_approved, created_at, user_id, products ( name )")
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -23,18 +24,21 @@ export async function getAllReviewsAdmin(client: SupabaseClient<Database>): Prom
   }
   if (error || !data) return [];
 
-  return (data as unknown as {
+  const rows = data as unknown as {
     id: string;
     rating: number;
     comment: string;
     is_approved: boolean;
     created_at: string;
+    user_id: string;
     products: { name: string } | null;
-    profiles: { full_name: string | null } | null;
-  }[]).map((r) => ({
+  }[];
+  const names = await getProfileNames(client, rows.map((r) => r.user_id));
+
+  return rows.map((r) => ({
     id: r.id,
     productName: r.products?.name ?? "Unknown product",
-    customerName: r.profiles?.full_name ?? "Customer",
+    customerName: names.get(r.user_id) ?? "Customer",
     rating: r.rating,
     comment: r.comment,
     date: new Date(r.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }),

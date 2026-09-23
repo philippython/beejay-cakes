@@ -167,6 +167,26 @@ export async function searchProducts(
   return withRatings(client, (data as unknown as DbProductRow[]).map((r) => mapProduct(r)));
 }
 
+/** Looks up display names for a set of user ids. `reviews.user_id` (and
+ *  `orders.user_id`) only FK to `auth.users`, not `profiles` — so
+ *  PostgREST can't auto-embed `profiles ( full_name )` from those tables
+ *  (no relationship to walk). Fetching profiles separately and merging
+ *  in JS sidesteps that instead of requiring a schema migration. */
+export async function getProfileNames(
+  client: SupabaseClient<Database>,
+  userIds: (string | null)[]
+): Promise<Map<string, string>> {
+  const ids = [...new Set(userIds.filter((id): id is string => !!id))];
+  const names = new Map<string, string>();
+  if (ids.length === 0) return names;
+
+  const { data } = await client.from("profiles").select("id, full_name").in("id", ids);
+  (data ?? []).forEach((p) => {
+    if (p.full_name) names.set(p.id, p.full_name);
+  });
+  return names;
+}
+
 export type ProductReview = {
   id: string;
   rating: number;
@@ -182,7 +202,7 @@ export async function getProductReviews(
 ): Promise<ProductReview[]> {
   const { data, error } = await client
     .from("reviews")
-    .select("id, rating, comment, photo_url, created_at, profiles ( full_name )")
+    .select("id, rating, comment, photo_url, created_at, user_id")
     .eq("product_id", productId)
     .eq("is_approved", true)
     .order("created_at", { ascending: false });
@@ -193,19 +213,22 @@ export async function getProductReviews(
   }
   if (error || !data) return [];
 
-  return (data as unknown as {
+  const rows = data as unknown as {
     id: string;
     rating: number;
     comment: string;
     photo_url: string | null;
     created_at: string;
-    profiles: { full_name: string | null } | null;
-  }[]).map((r) => ({
+    user_id: string;
+  }[];
+  const names = await getProfileNames(client, rows.map((r) => r.user_id));
+
+  return rows.map((r) => ({
     id: r.id,
     rating: r.rating,
     comment: r.comment,
     date: new Date(r.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }),
-    customerName: r.profiles?.full_name ?? "Verified customer",
+    customerName: names.get(r.user_id) ?? "Verified customer",
     photoUrl: r.photo_url,
   }));
 }
